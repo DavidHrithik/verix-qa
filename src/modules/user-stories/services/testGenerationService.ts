@@ -6,20 +6,18 @@ export interface GeneratedTestCaseItem extends TestCase {
 }
 
 export const generateMultiVectorTestCases = (story: UserStory): GeneratedTestCaseItem[] => {
-  const baseNum = parseInt(story.key.replace(/\D/g, ''), 10) || 200;
-  const acCount = story.acceptanceCriteria.length;
   const now = new Date().toISOString();
 
   if (story.key.includes('204') || story.title.toLowerCase().includes('export') || story.title.toLowerCase().includes('governance')) {
     return [
       {
-        id: `tc-${baseNum + 1}`,
+        id: 'tc-201',
         projectId: story.projectId,
         storyId: story.id,
-        key: `TC-${baseNum + 1}`,
+        key: 'TC-201',
         title: 'Verify Workspace Admin can enable local data export toggle for team member',
         type: 'Automated',
-        priority: 'High',
+        priority: 'Critical',
         status: 'Approved',
         isAiGenerated: true,
         aiConfidence: 98,
@@ -30,17 +28,19 @@ export const generateMultiVectorTestCases = (story: UserStory): GeneratedTestCas
         createdAt: now,
         updatedAt: now,
         steps: [
-          { stepNumber: 1, action: 'Given CloudAdmin navigates to Workspace Policy Console', expectedResult: 'Policy settings dashboard loaded successfully' },
-          { stepNumber: 2, action: 'When user selects team member "Sarah Jenkins" and toggles "Enable member to export data" ON', expectedResult: 'Toggle state flips to ON with green active indicator' },
-          { stepNumber: 3, action: 'Then audit log entry is recorded and policy is saved', expectedResult: 'Audit ledger reflects policy update timestamp' },
+          { stepNumber: 1, action: 'Given that CloudAdmin is logged in to Admin Console and launch Policy Utility', expectedResult: 'Cloud Admin Console permissions dashboard loaded' },
+          { stepNumber: 2, action: 'When user selects member "Sarah Jenkins (Data Analyst)" from dropdown', expectedResult: 'Member permissions policy panel populated' },
+          { stepNumber: 3, action: 'Then toggle for "Enable member to export data to local storage" should be ON', expectedResult: 'Toggle switch in active ON position (aria-checked=true)' },
+          { stepNumber: 4, action: 'When User turn OFF the toggle for export data', expectedResult: 'Toggle state changes to OFF and confirmation prompt shown' },
+          { stepNumber: 5, action: 'Then the user is logged out of the application', expectedResult: 'Session ended and login page displayed' },
         ],
       },
       {
-        id: `tc-${baseNum + 2}`,
+        id: 'tc-202',
         projectId: story.projectId,
         storyId: story.id,
-        key: `TC-${baseNum + 2}`,
-        title: 'Verify non-admin role receives 403 Forbidden when attempting data export API call',
+        key: 'TC-202',
+        title: 'Verify non-admin role is blocked from modifying data export policy',
         type: 'Automated',
         priority: 'Critical',
         status: 'Approved',
@@ -54,15 +54,15 @@ export const generateMultiVectorTestCases = (story: UserStory): GeneratedTestCas
         updatedAt: now,
         steps: [
           { stepNumber: 1, action: 'Given Member user "Devin Chen" with non-admin permissions logs in', expectedResult: 'Standard user dashboard loaded' },
-          { stepNumber: 2, action: 'When member sends POST request to /api/v1/workspace/export-data', expectedResult: 'Server rejects request with HTTP 403 Forbidden' },
+          { stepNumber: 2, action: 'When member attempts direct POST request to /api/v1/workspace/export-data', expectedResult: 'Server rejects request with HTTP 403 Forbidden' },
           { stepNumber: 3, action: 'Then UI renders access denied security banner', expectedResult: 'Zero-trust unauthorized access warning displayed' },
         ],
       },
       {
-        id: `tc-${baseNum + 3}`,
+        id: 'tc-203',
         projectId: story.projectId,
         storyId: story.id,
-        key: `TC-${baseNum + 3}`,
+        key: 'TC-203',
         title: 'Verify export payload limit threshold (>50MB) triggers chunked background stream without memory leak',
         type: 'Automated',
         priority: 'High',
@@ -82,10 +82,10 @@ export const generateMultiVectorTestCases = (story: UserStory): GeneratedTestCas
         ],
       },
       {
-        id: `tc-${baseNum + 4}`,
+        id: 'tc-204',
         projectId: story.projectId,
         storyId: story.id,
-        key: `TC-${baseNum + 4}`,
+        key: 'TC-204',
         title: 'Verify PII masking retains SHA-256 mask pattern when dataset contains unicode & special characters',
         type: 'Automated',
         priority: 'High',
@@ -105,10 +105,10 @@ export const generateMultiVectorTestCases = (story: UserStory): GeneratedTestCas
         ],
       },
       {
-        id: `tc-${baseNum + 5}`,
+        id: 'tc-205',
         projectId: story.projectId,
         storyId: story.id,
-        key: `TC-${baseNum + 5}`,
+        key: 'TC-205',
         title: 'Verify network drop or session timeout during export triggers safe state rollback',
         type: 'Automated',
         priority: 'Medium',
@@ -130,14 +130,16 @@ export const generateMultiVectorTestCases = (story: UserStory): GeneratedTestCas
     ];
   }
 
-  // Dynamic Generator for any custom or synthesized story
+  // Dynamic Generator for other stories
+  const prefix = story.key.includes('104') ? 'TC-30' : story.key.includes('108') ? 'TC-40' : 'TC-50';
+
   return [
     {
-      id: `tc-${baseNum + 1}`,
+      id: `${story.id}-tc-1`,
       projectId: story.projectId,
       storyId: story.id,
-      key: `TC-${baseNum + 1}`,
-      title: `Verify primary happy path flow for ${story.title}`,
+      key: `${prefix}1`,
+      title: `Verify primary functional happy path for ${story.title}`,
       type: 'Automated',
       priority: 'High',
       status: 'Approved',
@@ -156,16 +158,16 @@ export const generateMultiVectorTestCases = (story: UserStory): GeneratedTestCas
       ],
     },
     {
-      id: `tc-${baseNum + 2}`,
+      id: `${story.id}-tc-2`,
       projectId: story.projectId,
       storyId: story.id,
-      key: `TC-${baseNum + 2}`,
-      title: `Verify unauthorized role permissions and validation boundary for ${story.key}`,
+      key: `${prefix}2`,
+      title: `Verify unauthorized role access gate and security boundary for ${story.key}`,
       type: 'Automated',
       priority: 'Critical',
       status: 'Approved',
       isAiGenerated: true,
-      aiConfidence: 94,
+      aiConfidence: 95,
       tags: ['Security', 'Negative-Test', 'RBAC'],
       lastExecutionStatus: 'Passed',
       vectorType: 'Security / RBAC Gate',
@@ -179,16 +181,16 @@ export const generateMultiVectorTestCases = (story: UserStory): GeneratedTestCas
       ],
     },
     {
-      id: `tc-${baseNum + 3}`,
+      id: `${story.id}-tc-3`,
       projectId: story.projectId,
       storyId: story.id,
-      key: `TC-${baseNum + 3}`,
-      title: `Verify boundary conditions and maximum input limits for ${story.title}`,
+      key: `${prefix}3`,
+      title: `Verify boundary conditions and payload thresholds for ${story.title}`,
       type: 'Automated',
       priority: 'High',
       status: 'Approved',
       isAiGenerated: true,
-      aiConfidence: 92,
+      aiConfidence: 93,
       tags: ['Boundary', 'Edge-Case', 'Validation'],
       lastExecutionStatus: 'Passed',
       vectorType: 'Boundary / Threshold',
@@ -202,11 +204,11 @@ export const generateMultiVectorTestCases = (story: UserStory): GeneratedTestCas
       ],
     },
     {
-      id: `tc-${baseNum + 4}`,
+      id: `${story.id}-tc-4`,
       projectId: story.projectId,
       storyId: story.id,
-      key: `TC-${baseNum + 4}`,
-      title: `Verify error recovery and session resilience under latency or network failure`,
+      key: `${prefix}4`,
+      title: `Verify error recovery and session rollback under network failure for ${story.key}`,
       type: 'Automated',
       priority: 'Medium',
       status: 'Approved',
@@ -215,7 +217,7 @@ export const generateMultiVectorTestCases = (story: UserStory): GeneratedTestCas
       tags: ['Resilience', 'Fault-Tolerance'],
       lastExecutionStatus: 'Passed',
       vectorType: 'Resilience / Recovery',
-      targetAC: story.acceptanceCriteria[acCount - 1] || 'Session and fault recovery',
+      targetAC: story.acceptanceCriteria[story.acceptanceCriteria.length - 1] || 'Session and fault recovery',
       createdAt: now,
       updatedAt: now,
       steps: [

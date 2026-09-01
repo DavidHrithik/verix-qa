@@ -17,6 +17,11 @@ import {
   FileText,
   Activity,
   Download,
+  List,
+  ShieldAlert,
+  HardDrive,
+  FileSpreadsheet,
+  RotateCcw,
 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
@@ -29,6 +34,7 @@ import {
   SimulationStep,
   FailureScenario,
   AutomationViewMode,
+  BddScenario,
 } from '../types';
 import { mockFailureScenarios } from '../services/automationMockData';
 import { exportHealingReport } from '../services/reportExportService';
@@ -62,15 +68,24 @@ export const LiveTestRunner: React.FC<LiveTestRunnerProps> = ({
 }) => {
   const [viewMode, setViewMode] = useState<AutomationViewMode>('business_bdd');
   const [isTerminalExpanded, setIsTerminalExpanded] = useState<boolean>(false);
+  const [activeScenarioIdx, setActiveScenarioIdx] = useState<number>(0);
   const [simulateDrift, setSimulateDrift] = useState<boolean>(
     script.failureScenario !== undefined || script.status === 'Flaky' || script.lastRunStatus === 'Failed'
   );
   const terminalEndRef = useRef<HTMLDivElement>(null);
 
+  const subScenarios = script.subScenarios || [];
+  const currentScenario = subScenarios[activeScenarioIdx];
+  const activeTestCaseKey = currentScenario ? currentScenario.testCaseKey : script.testCaseKey;
+
+  // Active steps to display (current scenario's steps if selected)
+  const displaySteps = (currentScenario && runStatus === 'idle') ? currentScenario.steps : steps;
+
   useEffect(() => {
     setSimulateDrift(
       script.failureScenario !== undefined || script.status === 'Flaky' || script.lastRunStatus === 'Failed'
     );
+    setActiveScenarioIdx(0);
   }, [script.id]);
 
   useEffect(() => {
@@ -80,11 +95,11 @@ export const LiveTestRunner: React.FC<LiveTestRunnerProps> = ({
   }, [logs, isTerminalExpanded]);
 
   const handleTriggerRun = () => {
-    if (!simulateDrift) {
-      // Clean green execution
+    if (activeScenarioIdx !== 0 || !simulateDrift) {
+      // Clean pass for other scenarios or when drift is unchecked
       onStartExecution(true, undefined);
     } else {
-      // Execute with locator drift simulation to demonstrate AI healing
+      // Run Scenario 1 with drift simulation
       const failure =
         script.failureScenario ||
         (script.storyKey.includes('DBANK')
@@ -94,11 +109,64 @@ export const LiveTestRunner: React.FC<LiveTestRunnerProps> = ({
     }
   };
 
-  const passedCount = steps.filter((s) => s.status === 'passed' || s.status === 'healed').length;
-  const progressPercent = steps.length > 0 ? Math.round((passedCount / steps.length) * 100) : 0;
+  const passedCount = displaySteps.filter((s) => s.status === 'passed' || s.status === 'healed').length;
+  const progressPercent = displaySteps.length > 0 ? Math.round((passedCount / displaySteps.length) * 100) : 0;
 
   return (
     <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      {/* Multi-Scenario Tab Bar (When Feature has multiple scenarios) */}
+      {subScenarios.length > 0 && (
+        <div
+          className="card"
+          style={{
+            padding: '0.75rem 1rem',
+            backgroundColor: 'var(--bg-surface)',
+            border: '1px solid var(--border-subtle)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '0.75rem',
+            flexWrap: 'wrap',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Feature Scenarios ({subScenarios.length}):
+            </span>
+            {subScenarios.map((scen, idx) => {
+              const isSelected = idx === activeScenarioIdx;
+              return (
+                <button
+                  key={scen.id}
+                  disabled={isRunning}
+                  onClick={() => setActiveScenarioIdx(idx)}
+                  style={{
+                    padding: '0.35rem 0.65rem',
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: 'var(--text-xs)',
+                    fontWeight: 600,
+                    cursor: isRunning ? 'not-allowed' : 'pointer',
+                    border: '1px solid',
+                    backgroundColor: isSelected ? 'var(--accent-primary-light)' : 'var(--bg-surface-hover)',
+                    borderColor: isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)',
+                    color: isSelected ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    transition: 'all var(--transition-fast)',
+                  }}
+                >
+                  <span style={{ fontFamily: 'var(--font-mono)' }}>{scen.testCaseKey}</span>
+                  <span>• {scen.vectorType}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <Badge variant="passed">{subScenarios.length} Scenarios Defined</Badge>
+        </div>
+      )}
+
       {/* Top Runner Header Bar */}
       <div
         className="card"
@@ -118,127 +186,143 @@ export const LiveTestRunner: React.FC<LiveTestRunnerProps> = ({
               {script.name}
             </span>
             <span className="badge badge-default">BDD Cucumber</span>
-            <span className="badge badge-ai" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-              <ShieldCheck size={12} /> AI Self-Healing Engine Active
+            <span className="badge badge-primary">{activeTestCaseKey}</span>
+
+            {/* AI Engine Status Badge */}
+            <span
+              style={{
+                padding: '2px 8px',
+                borderRadius: 'var(--radius-sm)',
+                backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                color: '#10B981',
+                fontSize: '11px',
+                fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+            >
+              <Sparkles size={11} /> AI Self-Healing Engine Active
             </span>
-            {isHealedRun && (
-              <span className="badge badge-passed" style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                <Sparkles size={11} /> Verified Healed Run
-              </span>
+
+            {/* In-Runner Simulate UI Drift Toggle (Only on Scenario 1) */}
+            {activeScenarioIdx === 0 && (
+              <label
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontSize: '11px',
+                  color: 'var(--text-secondary)',
+                  cursor: 'pointer',
+                  backgroundColor: 'var(--bg-surface-hover)',
+                  padding: '2px 8px',
+                  borderRadius: 'var(--radius-sm)',
+                  border: '1px solid var(--border-subtle)',
+                }}
+                title="Toggle selector drift simulation on Scenario 1 to demonstrate AI auto-recovery"
+              >
+                <input
+                  type="checkbox"
+                  checked={simulateDrift}
+                  disabled={isRunning}
+                  onChange={(e) => setSimulateDrift(e.target.checked)}
+                  style={{ cursor: 'pointer', accentColor: 'var(--accent-primary)' }}
+                />
+                <span>Simulate UI Drift (AI Demo)</span>
+              </label>
             )}
           </div>
-          <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
-            Feature: <strong style={{ color: 'var(--text-primary)' }}>{script.featureTitle || script.storyTitle}</strong>
+
+          <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
+            {currentScenario ? currentScenario.title : script.featureTitle || script.storyTitle}
           </div>
         </div>
 
-        {/* View Mode Toggle & Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-          {/* Dual View Mode Toggle */}
-          <div
-            style={{
-              display: 'flex',
-              backgroundColor: 'var(--bg-app)',
-              padding: '2px',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--border-subtle)',
-            }}
-          >
-            <button
-              onClick={() => setViewMode('business_bdd')}
-              style={{
-                padding: '0.35rem 0.65rem',
-                borderRadius: 'var(--radius-sm)',
-                fontSize: '11px',
-                fontWeight: 600,
-                border: 'none',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                backgroundColor: viewMode === 'business_bdd' ? 'var(--accent-primary)' : 'transparent',
-                color: viewMode === 'business_bdd' ? '#FFFFFF' : 'var(--text-secondary)',
-              }}
-            >
-              <FileText size={12} />
-              <span>Business (BDD)</span>
-            </button>
-            <button
-              onClick={() => setViewMode('technical_sdet')}
-              style={{
-                padding: '0.35rem 0.65rem',
-                borderRadius: 'var(--radius-sm)',
-                fontSize: '11px',
-                fontWeight: 600,
-                border: 'none',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                backgroundColor: viewMode === 'technical_sdet' ? 'var(--accent-primary)' : 'transparent',
-                color: viewMode === 'technical_sdet' ? '#FFFFFF' : 'var(--text-secondary)',
-              }}
-            >
-              <Code2 size={12} />
-              <span>Technical (POM)</span>
-            </button>
-          </div>
-
-          {/* Quick Demo Simulator Toggle */}
-          <label
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              fontSize: '11px',
-              color: 'var(--text-secondary)',
-              backgroundColor: 'var(--bg-app)',
-              padding: '0.35rem 0.65rem',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--border-subtle)',
-              cursor: 'pointer',
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={simulateDrift}
-              onChange={(e) => setSimulateDrift(e.target.checked)}
-              style={{ accentColor: 'var(--accent-primary)', cursor: 'pointer' }}
-            />
-            <span>Simulate UI Drift (AI Demo)</span>
-          </label>
-
+        {/* Action Controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           {isRunning ? (
-            <Button
-              variant="danger"
-              size="sm"
-              leftIcon={<Square size={13} />}
-              onClick={onAbortExecution}
-            >
-              Abort Run
+            <Button variant="danger" size="md" leftIcon={<Square size={14} />} onClick={onAbortExecution}>
+              Stop Execution
             </Button>
           ) : (
             <Button
               variant="primary"
-              size="sm"
-              leftIcon={<Play size={13} />}
+              size="md"
+              leftIcon={<Play size={14} />}
               onClick={handleTriggerRun}
             >
-              {runStatus === 'idle' ? 'Run Scenario' : 'Re-Run Scenario'}
+              {activeScenarioIdx === 0 && simulateDrift ? 'Run & Diagnose (AI Demo)' : `Run Scenario (${activeTestCaseKey})`}
             </Button>
           )}
 
-          {runStatus === 'failed' && (
-            <Button
-              variant="ai"
-              size="sm"
-              leftIcon={<Sparkles size={14} />}
-              onClick={onOpenSelfHealingDiff}
+          {/* View Mode Toggle: BDD vs SDET */}
+          <div style={{ display: 'flex', borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--border-subtle)' }}>
+            <button
+              onClick={() => setViewMode('business_bdd')}
+              style={{
+                padding: '0.4rem 0.75rem',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 600,
+                cursor: 'pointer',
+                backgroundColor: viewMode === 'business_bdd' ? 'var(--accent-primary)' : 'var(--bg-surface)',
+                color: viewMode === 'business_bdd' ? '#FFFFFF' : 'var(--text-secondary)',
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
             >
-              AI Root Cause & Self-Heal
-            </Button>
-          )}
+              <FileText size={12} /> BDD Mode
+            </button>
+            <button
+              onClick={() => setViewMode('technical_sdet')}
+              style={{
+                padding: '0.4rem 0.75rem',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 600,
+                cursor: 'pointer',
+                backgroundColor: viewMode === 'technical_sdet' ? 'var(--accent-primary)' : 'var(--bg-surface)',
+                color: viewMode === 'technical_sdet' ? '#FFFFFF' : 'var(--text-secondary)',
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+            >
+              <Code2 size={12} /> SDET View
+            </button>
+          </div>
         </div>
+      </div>
+
+      {/* Progress & Live Telemetry Bar */}
+      <div className="card" style={{ padding: '0.875rem 1.25rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+            <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-primary)' }}>
+              Execution Progress ({passedCount} of {displaySteps.length} Steps)
+            </span>
+            {runStatus === 'running' && (
+              <span className="badge badge-warning animate-pulse">Running</span>
+            )}
+            {runStatus === 'passed' && (
+              <span className="badge badge-passed">100% Passed</span>
+            )}
+            {runStatus === 'healed' && (
+              <span className="badge badge-ai">✨ AI Self-Healed & Verified</span>
+            )}
+            {runStatus === 'failed' && (
+              <span className="badge badge-failed">Locator Drift Intercepted</span>
+            )}
+          </div>
+
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
+            {progressPercent}%
+          </span>
+        </div>
+
+        <ProgressBar value={progressPercent} variant={runStatus === 'failed' ? 'danger' : runStatus === 'healed' ? 'ai' : 'primary'} />
       </div>
 
       {/* Failure Detection Alert Banner */}
@@ -345,100 +429,89 @@ export const LiveTestRunner: React.FC<LiveTestRunnerProps> = ({
         left={
           <div className="card" style={{ padding: '1.25rem', height: '100%', display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-              <div style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
-                Scenario Steps ({passedCount}/{steps.length})
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Activity size={16} style={{ color: 'var(--accent-primary)' }} />
+                <span style={{ fontWeight: 600, fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
+                  Gherkin Step Checklist
+                </span>
               </div>
-              <Badge variant={runStatus === 'passed' || runStatus === 'healed' ? 'passed' : runStatus === 'failed' ? 'failed' : 'default'}>
-                {runStatus.toUpperCase()}
-              </Badge>
+              <span className="badge badge-default" style={{ fontSize: '10px' }}>
+                {activeTestCaseKey} ({displaySteps.length} Steps)
+              </span>
             </div>
 
-            <ProgressBar value={progressPercent} variant={runStatus === 'failed' ? 'danger' : 'primary'} showLabel />
-
-            {/* Human-Readable BDD Step Checklist */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1rem', overflowY: 'auto', flex: 1 }}>
-              {steps.map((step, idx) => {
-                const isCurrent = idx === currentStepIndex;
-                const isPassed = step.status === 'passed';
+            {/* Step list */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', overflowY: 'auto', flex: 1 }}>
+              {displaySteps.map((step, idx) => {
+                const isCurrent = idx === currentStepIndex && isRunning;
                 const isFailed = step.status === 'failed';
-                const isStepHealed = step.status === 'healed';
-                const isStepRunning = step.status === 'running';
-
-                let kwBadgeColor = '#60A5FA';
-                if (step.keyword === 'Given') kwBadgeColor = '#A78BFA';
-                if (step.keyword === 'When') kwBadgeColor = '#38BDF8';
-                if (step.keyword === 'Then') kwBadgeColor = '#34D399';
+                const isHealedStep = step.status === 'healed';
+                const isPassed = step.status === 'passed';
 
                 return (
                   <div
                     key={step.stepNumber}
                     style={{
-                      padding: '0.75rem',
+                      padding: '0.65rem 0.85rem',
                       borderRadius: 'var(--radius-md)',
-                      backgroundColor: isFailed
-                        ? 'var(--status-failed-bg)'
-                        : isCurrent
+                      backgroundColor: isCurrent
                         ? 'var(--accent-primary-light)'
-                        : isPassed
-                        ? 'var(--bg-surface)'
+                        : isFailed
+                        ? 'rgba(239, 68, 68, 0.1)'
+                        : isHealedStep
+                        ? 'rgba(16, 185, 129, 0.1)'
                         : 'var(--bg-surface-hover)',
-                      border: `1px solid ${
-                        isFailed
-                          ? 'var(--status-failed)'
-                          : isCurrent
-                          ? 'var(--accent-primary)'
-                          : 'var(--border-subtle)'
-                      }`,
+                      border: isCurrent
+                        ? '1px solid var(--accent-primary)'
+                        : isFailed
+                        ? '1px solid var(--status-failed)'
+                        : isHealedStep
+                        ? '1px solid var(--status-passed)'
+                        : '1px solid var(--border-subtle)',
                       transition: 'all var(--transition-fast)',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        {step.keyword && (
-                          <span
-                            style={{
-                              fontSize: '10px',
-                              fontWeight: 700,
-                              color: kwBadgeColor,
-                              padding: '1px 5px',
-                              borderRadius: '3px',
-                              backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                            }}
-                          >
-                            {step.keyword}
-                          </span>
-                        )}
-                        <span style={{ fontWeight: 600, fontSize: 'var(--text-xs)', color: isFailed ? 'var(--status-failed)' : 'var(--text-primary)' }}>
-                          {step.title.replace(/^(Given|When|Then|And)\s+/, '')}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <span style={{ fontWeight: 700, fontSize: '11px', color: '#38BDF8', fontFamily: 'var(--font-mono)' }}>
+                          {step.keyword || 'Step'} {step.stepNumber}:
+                        </span>
+                        <span style={{ fontWeight: 600, fontSize: '11px', color: 'var(--text-primary)' }}>
+                          {step.title}
                         </span>
                       </div>
 
-                      {isStepRunning && <span className="status-dot status-dot-running" />}
-                      {isPassed && <CheckCircle2 size={14} style={{ color: 'var(--status-passed)' }} />}
-                      {isFailed && <AlertTriangle size={14} style={{ color: 'var(--status-failed)' }} />}
-                      {isStepHealed && <Sparkles size={14} style={{ color: 'var(--ai-primary)' }} />}
+                      {isPassed && <span className="badge badge-passed" style={{ fontSize: '9px' }}>PASS</span>}
+                      {isHealedStep && (
+                        <span className="badge badge-ai" style={{ fontSize: '9px', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                          <Sparkles size={9} /> HEALED
+                        </span>
+                      )}
+                      {isFailed && <span className="badge badge-failed" style={{ fontSize: '9px' }}>FAILED</span>}
+                      {isCurrent && <span className="badge badge-warning animate-pulse" style={{ fontSize: '9px' }}>RUNNING</span>}
+                      {step.status === 'pending' && <span className="badge badge-default" style={{ fontSize: '9px' }}>PENDING</span>}
                     </div>
 
-                    {/* Show technical details ONLY if SDET View is toggled */}
-                    {viewMode === 'technical_sdet' && (
-                      <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', marginTop: '4px' }}>
-                        Locator: <code style={{ color: isFailed ? 'var(--status-failed)' : isStepHealed ? 'var(--status-passed)' : 'var(--accent-primary)' }}>{step.healedLocator && isHealedRun ? step.healedLocator : step.locator}</code>
-                      </div>
-                    )}
+                    {/* Step Action description */}
+                    <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginLeft: '4px' }}>
+                      {step.action}
+                    </div>
 
-                    {step.errorLog && isFailed && (
+                    {/* SDET Technical View Locator */}
+                    {viewMode === 'technical_sdet' && (
                       <div
                         style={{
-                          marginTop: '6px',
-                          padding: '4px 6px',
-                          borderRadius: 'var(--radius-xs)',
-                          backgroundColor: 'rgba(239, 68, 68, 0.15)',
-                          color: 'var(--status-failed)',
+                          marginTop: '4px',
+                          padding: '3px 6px',
+                          borderRadius: '3px',
+                          backgroundColor: '#0F172A',
+                          color: '#94A3B8',
                           fontSize: '10px',
                           fontFamily: 'var(--font-mono)',
+                          wordBreak: 'break-all',
                         }}
                       >
-                        {step.errorLog}
+                        <code>{isHealedStep && step.healedLocator ? step.healedLocator : step.locator}</code>
                       </div>
                     )}
                   </div>
@@ -448,89 +521,84 @@ export const LiveTestRunner: React.FC<LiveTestRunnerProps> = ({
           </div>
         }
         right={
+          /* Live Browser Viewport */
           <SimulatedBrowserViewport
             currentStepIndex={currentStepIndex}
-            steps={steps}
+            steps={displaySteps}
             runStatus={runStatus}
-            isHealed={isHealedRun || runStatus === 'healed'}
+            isHealed={isHealedRun}
             scriptName={script.name}
+            activeTestCaseKey={activeTestCaseKey}
           />
         }
       />
 
-      {/* Collapsible Clean Terminal Console */}
+      {/* Terminal / Live Execution Console Accordion */}
       <div
+        className="card"
         style={{
-          borderRadius: 'var(--radius-lg)',
-          backgroundColor: '#090D16',
+          padding: '0.75rem 1.25rem',
+          backgroundColor: '#0F172A',
           border: '1px solid #1E293B',
-          overflow: 'hidden',
-          boxShadow: 'var(--shadow-md)',
+          color: '#E2E8F0',
         }}
       >
-        <button
+        <div
           onClick={() => setIsTerminalExpanded(!isTerminalExpanded)}
           style={{
-            width: '100%',
-            padding: '0.65rem 1rem',
-            backgroundColor: '#0F172A',
-            border: 'none',
-            borderBottom: isTerminalExpanded ? '1px solid #1E293B' : 'none',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             cursor: 'pointer',
-            color: '#94A3B8',
-            fontSize: 'var(--text-xs)',
-            fontWeight: 600,
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Terminal size={14} style={{ color: '#38BDF8' }} />
-            <span>Execution Terminal Console ({logs.length} log lines)</span>
+            <Terminal size={15} style={{ color: '#38BDF8' }} />
+            <span style={{ fontWeight: 600, fontSize: 'var(--text-xs)', fontFamily: 'var(--font-mono)' }}>
+              Execution Logs & Telemetry Console ({logs.length} entries)
+            </span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '11px', color: '#64748B' }}>
-              {isTerminalExpanded ? 'Collapse Terminal' : 'Expand Terminal'}
-            </span>
-            {isTerminalExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            {isRunning && <span className="badge badge-warning animate-pulse" style={{ fontSize: '9px' }}>STREAMING</span>}
+            {isTerminalExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
           </div>
-        </button>
+        </div>
 
         {isTerminalExpanded && (
           <div
+            className="animate-fade-in"
             style={{
-              padding: '0.875rem 1rem',
+              marginTop: '0.75rem',
+              padding: '0.75rem',
+              backgroundColor: '#020617',
+              borderRadius: 'var(--radius-sm)',
+              border: '1px solid #1E293B',
+              maxHeight: '220px',
+              overflowY: 'auto',
               fontFamily: 'var(--font-mono)',
               fontSize: '11px',
               lineHeight: 1.6,
-              maxHeight: '220px',
-              overflowY: 'auto',
-              color: '#E2E8F0',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '2px',
             }}
           >
             {logs.length === 0 ? (
-              <div style={{ color: '#64748B', fontStyle: 'italic' }}>
-                Terminal idle. Click 'Run Scenario' to start.
-              </div>
+              <div style={{ color: '#64748B' }}>Logs will stream here when execution begins...</div>
             ) : (
               logs.map((log) => {
-                let color = '#94A3B8';
-                if (log.level === 'action') color = '#38BDF8';
-                if (log.level === 'assert') color = '#A78BFA';
-                if (log.level === 'warn') color = '#FBBF24';
-                if (log.level === 'error') color = '#F87171';
-                if (log.level === 'success') color = '#34D399';
-                if (log.level === 'ai') color = '#C084FC';
+                const color =
+                  log.level === 'error'
+                    ? '#F87171'
+                    : log.level === 'success' || log.level === 'ai'
+                    ? '#34D399'
+                    : log.level === 'warn'
+                    ? '#FBBF24'
+                    : log.level === 'action'
+                    ? '#38BDF8'
+                    : '#94A3B8';
 
                 return (
-                  <div key={log.id} style={{ display: 'flex', gap: '0.75rem' }}>
-                    <span style={{ color: '#475569', flexShrink: 0 }}>[{log.timestamp}]</span>
-                    <span style={{ color, wordBreak: 'break-word' }}>{log.message}</span>
+                  <div key={log.id} style={{ color, wordBreak: 'break-all' }}>
+                    <span style={{ color: '#64748B' }}>[{log.timestamp}]</span> <strong>[{log.level.toUpperCase()}]</strong> {log.message}
                   </div>
                 );
               })

@@ -35,7 +35,9 @@ export const StoryDetailModal: React.FC<StoryDetailModalProps> = ({
 }) => {
   if (!story) return null;
 
-  const linkedTestCases = mockTestCases.filter((tc) => tc.storyId === story.id);
+  const linkedTestCases = Array.from(
+    new Map(mockTestCases.filter((tc) => tc.storyId === story.id).map((tc) => [tc.key, tc])).values()
+  );
 
   return (
     <Modal

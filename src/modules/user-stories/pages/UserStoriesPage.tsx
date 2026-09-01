@@ -141,11 +141,17 @@ export const UserStoriesPage: React.FC = () => {
       key: 'testCaseCount',
       header: 'Test Cases',
       width: '110px',
-      render: (story: UserStory) => (
-        <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>
-          {story.testCaseCount} tests
-        </span>
-      ),
+      render: (story: UserStory) => {
+        const uniqueCount = Array.from(
+          new Map(mockTestCases.filter((tc) => tc.storyId === story.id).map((tc) => [tc.key, tc])).values()
+        ).length;
+        const count = uniqueCount > 0 ? uniqueCount : story.testCaseCount;
+        return (
+          <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>
+            {count} tests
+          </span>
+        );
+      },
     },
     {
       key: 'actions',

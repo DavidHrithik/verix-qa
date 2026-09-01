@@ -241,6 +241,238 @@ public class MemberPermissionsPage {
         uiTargetName: 'Logout'
       }
     ],
+    subScenarios: [
+      {
+        id: 'scen-tc-201',
+        testCaseKey: 'TC-201',
+        title: 'Scenario 1: Workspace Admin enables member data export toggle (AI Self-Healing Demo)',
+        vectorType: 'Functional / Happy Path',
+        failureScenario: mockFailureScenarios.member_export_toggle_drift,
+        steps: [
+          {
+            stepNumber: 1,
+            keyword: 'Given',
+            title: 'Given that CloudAdmin is logged in to Admin Console',
+            action: 'Authenticate CloudAdmin and open Policy Utility',
+            locator: `driver.get("https://admin.cloud.enterprise.internal/policies")`,
+            expectedResult: 'Cloud Admin Console permissions dashboard loaded',
+            status: 'passed',
+            durationMs: 380,
+            uiTargetName: 'Admin Portal'
+          },
+          {
+            stepNumber: 2,
+            keyword: 'When',
+            title: 'When user selects member from dropdown',
+            action: 'Choose member "Sarah Jenkins (Data Analyst)"',
+            locator: `driver.findElement(By.id("select-member-dropdown"))`,
+            expectedResult: 'Member permissions policy panel populated',
+            status: 'passed',
+            durationMs: 310,
+            uiTargetName: 'Member Selector'
+          },
+          {
+            stepNumber: 3,
+            keyword: 'Then',
+            title: 'Then toggle for "Enable member to export data" should be "ON"',
+            action: 'Assert export data toggle state is ON',
+            locator: `driver.findElement(By.id("toggle-export-data"))`,
+            healedLocator: `driver.findElement(By.cssSelector("[data-testid='member-export-toggle']"))`,
+            expectedResult: 'Toggle switch in active ON position (aria-checked=true)',
+            status: 'failed',
+            durationMs: 5012,
+            errorLog: `NoSuchElementException: Unable to locate element By.id("toggle-export-data")`,
+            uiTargetName: 'Export Data Toggle'
+          },
+          {
+            stepNumber: 4,
+            keyword: 'When',
+            title: 'When User turn OFF the toggle for export data',
+            action: 'Click toggle button to switch state to OFF',
+            locator: `driver.findElement(By.cssSelector("[data-testid='member-export-toggle']"))`,
+            expectedResult: 'Toggle state changes to OFF',
+            status: 'pending',
+            durationMs: 0,
+            uiTargetName: 'Toggle Action'
+          },
+          {
+            stepNumber: 5,
+            keyword: 'Then',
+            title: 'Then the user is logged out of the application',
+            action: 'Perform clean signout and verify session termination',
+            locator: `driver.findElement(By.id("btn-logout"))`,
+            expectedResult: 'Session ended and login page displayed',
+            status: 'pending',
+            durationMs: 0,
+            uiTargetName: 'Logout'
+          }
+        ]
+      },
+      {
+        id: 'scen-tc-202',
+        testCaseKey: 'TC-202',
+        title: 'Scenario 2: Non-admin member receives 403 Forbidden Access Denied gate',
+        vectorType: 'Security / RBAC Gate',
+        steps: [
+          {
+            stepNumber: 1,
+            keyword: 'Given',
+            title: 'Given Member user "Devin Chen" logs in to member portal',
+            action: 'Authenticate non-admin member session',
+            locator: `driver.get("https://member.cloud.enterprise.internal")`,
+            expectedResult: 'Standard member portal loaded',
+            status: 'passed',
+            durationMs: 320,
+            uiTargetName: 'Member Portal'
+          },
+          {
+            stepNumber: 2,
+            keyword: 'When',
+            title: 'When member triggers direct POST to /api/v1/workspace/export-data',
+            action: 'Send unauthorized export request payload',
+            locator: `api.post("/api/v1/workspace/export-data", { memberId: "devin" })`,
+            expectedResult: 'Server rejects request with HTTP 403 Forbidden',
+            status: 'passed',
+            durationMs: 250,
+            uiTargetName: 'API Security Interceptor'
+          },
+          {
+            stepNumber: 3,
+            keyword: 'Then',
+            title: 'Then UI renders access denied zero-trust security banner',
+            action: 'Verify 403 security warning rendered in portal',
+            locator: `driver.findElement(By.cssSelector("[data-testid='security-denied-alert']"))`,
+            expectedResult: 'Zero-trust unauthorized access warning displayed',
+            status: 'passed',
+            durationMs: 210,
+            uiTargetName: 'Security Banner'
+          }
+        ]
+      },
+      {
+        id: 'scen-tc-203',
+        testCaseKey: 'TC-203',
+        title: 'Scenario 3: Export payload exceeding 50MB streams asynchronously in chunks',
+        vectorType: 'Boundary / Threshold',
+        steps: [
+          {
+            stepNumber: 1,
+            keyword: 'Given',
+            title: 'Given workspace contains 500,000 telemetry audit records totaling 75MB',
+            action: 'Load high-volume dataset in test sandbox',
+            locator: `driver.get("https://admin.cloud.enterprise.internal/export")`,
+            expectedResult: 'Dataset indexed and ready for export',
+            status: 'passed',
+            durationMs: 400,
+            uiTargetName: 'Data Pipeline'
+          },
+          {
+            stepNumber: 2,
+            keyword: 'When',
+            title: 'When admin triggers full organizational export',
+            action: 'Click "Export Full Telemetry Archive"',
+            locator: `driver.findElement(By.id("btn-start-heavy-export"))`,
+            expectedResult: 'System switches to asynchronous chunked background job',
+            status: 'passed',
+            durationMs: 480,
+            uiTargetName: 'Export Stream'
+          },
+          {
+            stepNumber: 3,
+            keyword: 'Then',
+            title: 'Then download progress bar tracks chunk completion without memory leak',
+            action: 'Assert 100% chunk streamed and checksum verified',
+            locator: `driver.findElement(By.cssSelector("[data-testid='chunk-stream-progress']"))`,
+            expectedResult: 'File downloaded successfully with valid checksum',
+            status: 'passed',
+            durationMs: 390,
+            uiTargetName: 'Progress Monitor'
+          }
+        ]
+      },
+      {
+        id: 'scen-tc-204',
+        testCaseKey: 'TC-204',
+        title: 'Scenario 4: PII masking retains SHA-256 mask pattern on unicode & special characters',
+        vectorType: 'Edge Case / PII Governance',
+        steps: [
+          {
+            stepNumber: 1,
+            keyword: 'Given',
+            title: 'Given user records containing unicode and special characters in PII fields',
+            action: 'Load edge-case data sandbox',
+            locator: `driver.get("https://admin.cloud.enterprise.internal/pii-audit")`,
+            expectedResult: 'Raw edge-case test records loaded',
+            status: 'passed',
+            durationMs: 310,
+            uiTargetName: 'PII Sandbox'
+          },
+          {
+            stepNumber: 2,
+            keyword: 'When',
+            title: 'When PII masking engine executes export sanitization',
+            action: 'Trigger SHA-256 hashing filter on export stream',
+            locator: `pipeline.execute("mask-pii-sha256")`,
+            expectedResult: 'Sensitive fields masked with consistent 64-char hex hash',
+            status: 'passed',
+            durationMs: 340,
+            uiTargetName: 'Masking Filter'
+          },
+          {
+            stepNumber: 3,
+            keyword: 'Then',
+            title: 'Then compliance scanner verifies 0% PII leak in output CSV',
+            action: 'Scan exported data for unmasked SSN or phone numbers',
+            locator: `assert(complianceScanner.scan(output).leaks == 0)`,
+            expectedResult: 'Compliance scanner verifies 0% PII leak',
+            status: 'passed',
+            durationMs: 290,
+            uiTargetName: 'Compliance Scanner'
+          }
+        ]
+      },
+      {
+        id: 'scen-tc-205',
+        testCaseKey: 'TC-205',
+        title: 'Scenario 5: Network drop during active export triggers safe state rollback',
+        vectorType: 'Resilience / Recovery',
+        steps: [
+          {
+            stepNumber: 1,
+            keyword: 'Given',
+            title: 'Given active background data export in progress at 45% completion',
+            action: 'Monitor active export thread',
+            locator: `driver.get("https://admin.cloud.enterprise.internal/export-monitor")`,
+            expectedResult: 'Background export stream active',
+            status: 'passed',
+            durationMs: 350,
+            uiTargetName: 'Stream Monitor'
+          },
+          {
+            stepNumber: 2,
+            keyword: 'When',
+            title: 'When simulated network drop invalidates WebSocket session',
+            action: 'Simulate connection interrupt',
+            locator: `network.simulateDrop()`,
+            expectedResult: 'Session invalidated gracefully with alert banner',
+            status: 'passed',
+            durationMs: 300,
+            uiTargetName: 'Network Interceptor'
+          },
+          {
+            stepNumber: 3,
+            keyword: 'Then',
+            title: 'Then partial temporary files are purged and system returns to clean idle state',
+            action: 'Assert temporary staging tables cleaned up and resume token generated',
+            locator: `assert(db.stagingFiles.count() == 0)`,
+            expectedResult: 'System returns to clean idle state with zero corrupted files',
+            status: 'passed',
+            durationMs: 270,
+            uiTargetName: 'Rollback Ledger'
+          }
+        ]
+      }
+    ],
     code: `@CLOUD204 @admin @cloud @privacy @security @compliance @run
 Feature: CLOUD-204 - Workspace Admin Data Export & PII Masking Governance Policy
 

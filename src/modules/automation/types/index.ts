@@ -49,6 +49,15 @@ export interface SimulationStep {
   uiTargetName?: string;
 }
 
+export interface BddScenario {
+  id: string;
+  testCaseKey: string;
+  title: string;
+  vectorType: string;
+  steps: SimulationStep[];
+  failureScenario?: FailureScenario;
+}
+
 export interface AutomationScriptExtended extends AutomationScript {
   storyKey: string;
   storyTitle: string;
@@ -67,6 +76,7 @@ export interface AutomationScriptExtended extends AutomationScript {
   executionCount: number;
   lastExecutionDuration: number;
   steps: SimulationStep[];
+  subScenarios?: BddScenario[];
   failureScenario?: FailureScenario;
 }
 

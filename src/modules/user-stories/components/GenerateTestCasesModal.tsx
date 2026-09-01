@@ -12,12 +12,14 @@ import {
   CheckCircle,
   ExternalLink,
   ChevronRight,
+  RotateCw,
 } from 'lucide-react';
 import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
 import { AIResultContainer, AIGeneratedBadge } from '../../../components/ai';
 import { UserStory, TestCase } from '../../../types';
+import { mockTestCases } from '../../../mock';
 import { generateMultiVectorTestCases, GeneratedTestCaseItem } from '../services/testGenerationService';
 
 interface GenerateTestCasesModalProps {
@@ -34,19 +36,46 @@ export const GenerateTestCasesModal: React.FC<GenerateTestCasesModalProps> = ({
   onAcceptAndNavigate,
 }) => {
   const [isSynthesizing, setIsSynthesizing] = useState<boolean>(true);
+  const [alreadyExisted, setAlreadyExisted] = useState<boolean>(false);
   const [generatedCases, setGeneratedCases] = useState<GeneratedTestCaseItem[]>([]);
   const [selectedCaseIdx, setSelectedCaseIdx] = useState<number>(0);
 
-  useEffect(() => {
-    if (isOpen && story) {
+  const synthesizeCases = (forceFresh: boolean = false) => {
+    if (!story) return;
+
+    const existingInMock = mockTestCases.filter((tc) => tc.storyId === story.id);
+
+    if (existingInMock.length > 0 && !forceFresh) {
+      setAlreadyExisted(true);
+      const mapped: GeneratedTestCaseItem[] = existingInMock.map((tc, idx) => {
+        const vType: GeneratedTestCaseItem['vectorType'] =
+          idx === 0 ? 'Functional / Happy Path' :
+          idx === 1 ? 'Security / RBAC Gate' :
+          idx === 2 ? 'Boundary / Threshold' :
+          idx === 3 ? 'Edge Case / PII Governance' : 'Resilience / Recovery';
+
+        return {
+          ...tc,
+          vectorType: vType,
+          targetAC: story.acceptanceCriteria[idx % story.acceptanceCriteria.length] || 'Acceptance Criteria Verified',
+        };
+      });
+      setGeneratedCases(mapped);
+      setIsSynthesizing(false);
+    } else {
+      setAlreadyExisted(false);
       setIsSynthesizing(true);
-      const timer = setTimeout(() => {
+      setTimeout(() => {
         const cases = generateMultiVectorTestCases(story);
         setGeneratedCases(cases);
         setIsSynthesizing(false);
-      }, 1000);
+      }, 900);
+    }
+  };
 
-      return () => clearTimeout(timer);
+  useEffect(() => {
+    if (isOpen && story) {
+      synthesizeCases(false);
     }
   }, [isOpen, story]);
 
@@ -61,11 +90,17 @@ export const GenerateTestCasesModal: React.FC<GenerateTestCasesModalProps> = ({
       footer={
         <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
           <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
-            {!isSynthesizing ? `${generatedCases.length} Test Vectors Synthesized (100% AC Coverage)` : 'Synthesizing test scenarios...'}
+            {!isSynthesizing ? `${generatedCases.length} Unique Test Vectors Active (100% AC Coverage)` : 'Synthesizing test scenarios...'}
           </span>
           <div style={{ display: 'flex', gap: '0.75rem' }}>
-            <Button variant="secondary" size="md" onClick={onClose}>
-              Done
+            <Button
+              variant="secondary"
+              size="md"
+              leftIcon={<RotateCw size={13} />}
+              onClick={() => synthesizeCases(true)}
+              title="Re-run AI Synthesis"
+            >
+              Re-Synthesize
             </Button>
             <Button
               variant="primary"
@@ -116,19 +151,21 @@ export const GenerateTestCasesModal: React.FC<GenerateTestCasesModalProps> = ({
           <>
             {/* Top AI Result Header Banner */}
             <AIResultContainer
-              title={`Synthesized ${generatedCases.length} Test Scenarios for ${story.key}`}
+              title={alreadyExisted ? `Active Suite: ${generatedCases.length} Test Scenarios for ${story.key}` : `Synthesized ${generatedCases.length} Test Scenarios for ${story.key}`}
               confidence={97}
-              badgeText="Multi-Vector Coverage Engine"
+              badgeText={alreadyExisted ? "Test Suite Active" : "Multi-Vector Coverage Engine"}
             >
               <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                AI has generated comprehensive test cases matching all {story.acceptanceCriteria.length} acceptance criteria of <strong>{story.title}</strong>, including negative security gates and edge thresholds.
+                {alreadyExisted
+                  ? `These ${generatedCases.length} unique test cases are active and linked to ${story.key}. All ${story.acceptanceCriteria.length} acceptance criteria are fully mapped without duplicates.`
+                  : `AI has generated ${generatedCases.length} comprehensive test cases matching all ${story.acceptanceCriteria.length} acceptance criteria of ${story.title}.`}
               </div>
             </AIResultContainer>
 
             {/* Generated Test Cases Breakdown List */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <div style={{ fontWeight: 600, fontSize: 'var(--text-xs)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Generated Test Scenarios ({generatedCases.length})
+                Active Test Scenarios ({generatedCases.length})
               </div>
 
               {generatedCases.map((tc, idx) => {
@@ -174,7 +211,7 @@ export const GenerateTestCasesModal: React.FC<GenerateTestCasesModalProps> = ({
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <Badge variant={tc.priority === 'Critical' ? 'failed' : 'warning'}>{tc.priority}</Badge>
                         <span style={{ fontSize: '11px', color: 'var(--status-passed)', fontWeight: 600 }}>
-                          ✓ AI Approved ({tc.aiConfidence}%)
+                          ✓ AI Verified ({tc.aiConfidence || 96}%)
                         </span>
                       </div>
                     </div>
@@ -204,7 +241,7 @@ export const GenerateTestCasesModal: React.FC<GenerateTestCasesModalProps> = ({
                         }}
                       >
                         <div style={{ color: '#38BDF8', fontWeight: 600, marginBottom: '4px' }}>
-                          Verified Execution Steps ({tc.steps.length}):
+                          Execution Steps ({tc.steps.length}):
                         </div>
                         {tc.steps.map((st) => (
                           <div key={st.stepNumber} style={{ padding: '2px 0' }}>

@@ -15,6 +15,11 @@ import {
   Download,
   ToggleLeft,
   ToggleRight,
+  ShieldAlert,
+  HardDrive,
+  FileSpreadsheet,
+  AlertTriangle,
+  RotateCcw,
 } from 'lucide-react';
 import { SimulationStep } from '../types';
 
@@ -24,6 +29,7 @@ interface SimulatedBrowserViewportProps {
   runStatus: 'idle' | 'running' | 'passed' | 'failed' | 'healed';
   isHealed: boolean;
   scriptName: string;
+  activeTestCaseKey?: string;
 }
 
 export const SimulatedBrowserViewport: React.FC<SimulatedBrowserViewportProps> = ({
@@ -32,6 +38,7 @@ export const SimulatedBrowserViewport: React.FC<SimulatedBrowserViewportProps> =
   runStatus,
   isHealed,
   scriptName,
+  activeTestCaseKey = 'TC-201',
 }) => {
   const isMemberPolicyCloud204 = scriptName.includes('CLOUD') || scriptName.includes('204') || scriptName.includes('Policy') || scriptName.includes('Export') || scriptName.includes('Admin');
   const isWireTransfer = scriptName.includes('wire') || scriptName.includes('mfa') || scriptName.includes('DBANK104');
@@ -89,13 +96,23 @@ export const SimulatedBrowserViewport: React.FC<SimulatedBrowserViewportProps> =
             {isMemberPolicyCloud204 ? 'https://admin.cloud.enterprise.internal' : 'https://qa-sandbox.dbank.verix.io'}
           </span>
           <span style={{ color: '#64748B' }}>
-            {isMemberPolicyCloud204 ? '/member-policies/data-export' : '/transfers/wire'}
+            {activeTestCaseKey === 'TC-202'
+              ? '/member-portal/unauthorized-export'
+              : activeTestCaseKey === 'TC-203'
+              ? '/data-pipeline/heavy-stream'
+              : activeTestCaseKey === 'TC-204'
+              ? '/compliance/pii-masking-audit'
+              : activeTestCaseKey === 'TC-205'
+              ? '/session-monitor/rollback'
+              : isMemberPolicyCloud204
+              ? '/member-policies/data-export'
+              : '/transfers/wire'}
           </span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#64748B', fontSize: '11px' }}>
           <span className="badge badge-default" style={{ fontSize: '10px', padding: '1px 5px' }}>
-            Chrome • 1280x720
+            Chrome • {activeTestCaseKey}
           </span>
         </div>
       </div>
@@ -114,184 +131,328 @@ export const SimulatedBrowserViewport: React.FC<SimulatedBrowserViewportProps> =
         }}
       >
         {isMemberPolicyCloud204 ? (
-          /* Cloud Admin Console: Member Policy View (CLOUD-204) */
-          <div
-            style={{
-              width: '100%',
-              maxWidth: '480px',
-              backgroundColor: 'var(--bg-surface)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '1.25rem',
-              border: '1px solid var(--border-subtle)',
-              boxShadow: 'var(--shadow-sm)',
-            }}
-          >
-            {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <ShieldCheck size={18} style={{ color: 'var(--accent-primary)' }} />
+          activeTestCaseKey === 'TC-202' ? (
+            /* TC-202: 403 Forbidden Security Alert View */
+            <div
+              style={{
+                width: '100%',
+                maxWidth: '460px',
+                backgroundColor: 'var(--bg-surface)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '1.5rem',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                boxShadow: 'var(--shadow-sm)',
+                textAlign: 'center',
+              }}
+            >
+              <div
+                style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                  color: 'var(--status-failed)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 1rem',
+                }}
+              >
+                <ShieldAlert size={28} />
+              </div>
+              <div style={{ fontWeight: 700, fontSize: 'var(--text-md)', color: 'var(--status-failed)', marginBottom: '4px' }}>
+                403 Access Forbidden: Zero-Trust Policy
+              </div>
+              <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginBottom: '1rem', lineHeight: 1.5 }}>
+                User <strong>"Devin Chen (Member)"</strong> lacks administrative export privileges. This action has been blocked and logged in the security ledger.
+              </p>
+              <div style={{ padding: '0.5rem', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg-surface-hover)', fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
+                Assertion Verified: HTTP 403 Forbidden Gate Enforced
+              </div>
+            </div>
+          ) : activeTestCaseKey === 'TC-203' ? (
+            /* TC-203: 50MB Stream Boundary Check */
+            <div
+              style={{
+                width: '100%',
+                maxWidth: '460px',
+                backgroundColor: 'var(--bg-surface)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '1.25rem',
+                border: '1px solid var(--border-subtle)',
+                boxShadow: 'var(--shadow-sm)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1rem' }}>
+                <HardDrive size={20} style={{ color: 'var(--status-warning)' }} />
                 <div>
                   <div style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
-                    Cloud Admin Console: Policy Utility
+                    High-Volume Telemetry Export Pipeline
                   </div>
-                  <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Role: CloudAdmin • User: adminUser</div>
+                  <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Payload: 75.4 MB (500,000 telemetry rows)</div>
                 </div>
               </div>
-              <span className="badge badge-passed">Cloud Connected</span>
-            </div>
 
-            {/* Member Selector Dropdown Preview */}
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '3px' }}>
-                Selected Team Member
-              </label>
-              <div
-                style={{
-                  padding: '0.45rem 0.65rem',
-                  borderRadius: 'var(--radius-sm)',
-                  backgroundColor: currentStepIndex >= 1 ? 'var(--bg-surface-hover)' : 'var(--bg-app)',
-                  border: currentStepIndex === 1 ? '2px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
-                  color: 'var(--text-primary)',
-                  fontSize: 'var(--text-xs)',
-                  fontWeight: 600,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                }}
-              >
-                <UserCheck size={14} style={{ color: 'var(--status-passed)' }} />
-                <span>Sarah Jenkins (Data Analyst - Finance)</span>
+              <div style={{ marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '4px' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Asynchronous Chunk Streaming</span>
+                  <span style={{ color: '#10B981', fontWeight: 700 }}>100% Streamed</span>
+                </div>
+                <div style={{ height: '8px', borderRadius: '4px', backgroundColor: '#1E293B', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: '100%', backgroundColor: '#10B981' }} />
+                </div>
+              </div>
+
+              <div style={{ padding: '0.5rem', borderRadius: 'var(--radius-sm)', backgroundColor: 'rgba(16, 185, 129, 0.08)', color: 'var(--status-passed)', fontSize: '11px', textAlign: 'center', fontWeight: 600 }}>
+                ✓ Threshold Verified: Chunked Stream Active (Zero Memory Leak)
               </div>
             </div>
-
-            {/* Permission Toggles List */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: 'var(--text-xs)' }}>
-              {/* Target Toggle Switch (Step 3 Target) */}
-              <div
-                style={{
-                  padding: '0.75rem',
-                  borderRadius: 'var(--radius-md)',
-                  backgroundColor: isStepFailed
-                    ? 'var(--status-failed-bg)'
-                    : isHealed
-                    ? 'rgba(16, 185, 129, 0.08)'
-                    : 'var(--bg-surface-hover)',
-                  border: isStepFailed
-                    ? '2px dashed var(--status-failed)'
-                    : isHealed
-                    ? '2px solid var(--status-passed)'
-                    : '1px solid var(--border-subtle)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  position: 'relative',
-                }}
-              >
+          ) : activeTestCaseKey === 'TC-204' ? (
+            /* TC-204: PII Masking Verification */
+            <div
+              style={{
+                width: '100%',
+                maxWidth: '480px',
+                backgroundColor: 'var(--bg-surface)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '1.25rem',
+                border: '1px solid var(--border-subtle)',
+                boxShadow: 'var(--shadow-sm)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.75rem' }}>
+                <FileSpreadsheet size={20} style={{ color: '#C084FC' }} />
                 <div>
-                  <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-                    Enable member to export data to local storage
+                  <div style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
+                    PII Data Masking Governance Audit
                   </div>
-                  <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
-                    Policy Toggle: CLOUD-204 • Data Export Governance
+                  <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Algorithm: SHA-256 Hex Hash Masking</div>
+                </div>
+              </div>
+
+              <div style={{ borderRadius: 'var(--radius-sm)', overflow: 'hidden', border: '1px solid var(--border-subtle)', marginBottom: '0.75rem', fontSize: '11px' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ backgroundColor: 'var(--bg-surface-hover)', textAlign: 'left', color: 'var(--text-muted)' }}>
+                      <th style={{ padding: '4px 8px' }}>User</th>
+                      <th style={{ padding: '4px 8px' }}>Masked SSN/PII Token</th>
+                      <th style={{ padding: '4px 8px' }}>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                      <td style={{ padding: '4px 8px', fontWeight: 600 }}>Sarah J. 👩‍💻</td>
+                      <td style={{ padding: '4px 8px', fontFamily: 'var(--font-mono)', color: '#34D399' }}>9f86d081884c7d6...</td>
+                      <td style={{ padding: '4px 8px', color: '#10B981' }}>Masked ✓</td>
+                    </tr>
+                    <tr style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                      <td style={{ padding: '4px 8px', fontWeight: 600 }}>Arun M. 👨‍⚕️</td>
+                      <td style={{ padding: '4px 8px', fontFamily: 'var(--font-mono)', color: '#34D399' }}>5e884898da28047...</td>
+                      <td style={{ padding: '4px 8px', color: '#10B981' }}>Masked ✓</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div style={{ fontSize: '11px', color: 'var(--status-passed)', fontWeight: 600, textAlign: 'center' }}>
+                ✓ Zero Unmasked PII Exposed in Export Output
+              </div>
+            </div>
+          ) : activeTestCaseKey === 'TC-205' ? (
+            /* TC-205: Session Timeout Rollback Monitor */
+            <div
+              style={{
+                width: '100%',
+                maxWidth: '460px',
+                backgroundColor: 'var(--bg-surface)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '1.25rem',
+                border: '1px solid var(--border-subtle)',
+                boxShadow: 'var(--shadow-sm)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.75rem' }}>
+                <RotateCcw size={20} style={{ color: '#38BDF8' }} />
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
+                    Session Resilience & State Rollback
+                  </div>
+                  <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Simulated Network Disconnect at 45% Stream</div>
+                </div>
+              </div>
+
+              <div style={{ padding: '0.75rem', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-surface-hover)', fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '0.75rem', lineHeight: 1.5 }}>
+                • WebSocket interrupt detected<br />
+                • Temporary staging tables purged<br />
+                • Session returned to clean idle state without orphaned locks
+              </div>
+
+              <div style={{ fontSize: '11px', color: 'var(--status-passed)', fontWeight: 600, textAlign: 'center' }}>
+                ✓ System Resilience Verified (Zero State Corruption)
+              </div>
+            </div>
+          ) : (
+            /* Default: TC-201 Cloud Admin Console: Member Policy View */
+            <div
+              style={{
+                width: '100%',
+                maxWidth: '480px',
+                backgroundColor: 'var(--bg-surface)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '1.25rem',
+                border: '1px solid var(--border-subtle)',
+                boxShadow: 'var(--shadow-sm)',
+              }}
+            >
+              {/* Header */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <ShieldCheck size={18} style={{ color: 'var(--accent-primary)' }} />
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
+                      Cloud Admin Console: Policy Utility
+                    </div>
+                    <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Role: CloudAdmin • User: adminUser</div>
                   </div>
                 </div>
+                <span className="badge badge-passed">Cloud Connected</span>
+              </div>
 
+              {/* Member Selector Dropdown Preview */}
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '3px' }}>
+                  Selected Team Member
+                </label>
                 <div
                   style={{
+                    padding: '0.45rem 0.65rem',
+                    borderRadius: 'var(--radius-sm)',
+                    backgroundColor: currentStepIndex >= 1 ? 'var(--bg-surface-hover)' : 'var(--bg-app)',
+                    border: currentStepIndex === 1 ? '2px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+                    color: 'var(--text-primary)',
+                    fontSize: 'var(--text-xs)',
+                    fontWeight: 600,
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.35rem',
-                    color: isStepFailed ? 'var(--status-failed)' : isHealed ? 'var(--status-passed)' : '#38BDF8',
-                    fontWeight: 700,
+                    gap: '0.4rem',
                   }}
                 >
-                  <span>{currentStepIndex >= 3 ? 'OFF' : 'ON'}</span>
-                  {currentStepIndex >= 3 ? <ToggleLeft size={24} /> : <ToggleRight size={24} />}
+                  <UserCheck size={14} style={{ color: 'var(--status-passed)' }} />
+                  <span>Sarah Jenkins (Data Analyst - Finance)</span>
+                </div>
+              </div>
+
+              {/* Permission Toggles List */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: 'var(--text-xs)' }}>
+                {/* Target Toggle Switch (Step 3 Target) */}
+                <div
+                  style={{
+                    padding: '0.75rem',
+                    borderRadius: 'var(--radius-md)',
+                    backgroundColor: isStepFailed
+                      ? 'var(--status-failed-bg)'
+                      : isHealed
+                      ? 'rgba(16, 185, 129, 0.08)'
+                      : 'var(--bg-surface-hover)',
+                    border: isStepFailed
+                      ? '2px dashed var(--status-failed)'
+                      : isHealed
+                      ? '2px solid var(--status-passed)'
+                      : '1px solid var(--border-subtle)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    position: 'relative',
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                      Enable member to export data to local storage
+                    </div>
+                    <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                      Policy Toggle: CLOUD-204 • Data Export Governance
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                      color: isStepFailed ? 'var(--status-failed)' : isHealed ? 'var(--status-passed)' : '#38BDF8',
+                      fontWeight: 700,
+                    }}
+                  >
+                    <span>{currentStepIndex >= 3 ? 'OFF' : 'ON'}</span>
+                    {currentStepIndex >= 3 ? <ToggleLeft size={24} /> : <ToggleRight size={24} />}
+                  </div>
+
+                  {/* Failed locator tag */}
+                  {isStepFailed && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '-9px',
+                        right: '10px',
+                        backgroundColor: 'var(--status-failed)',
+                        color: '#FFFFFF',
+                        fontSize: '9px',
+                        fontWeight: 700,
+                        padding: '1px 6px',
+                        borderRadius: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '3px',
+                      }}
+                    >
+                      <AlertCircle size={10} />
+                      Target locator `#toggle-export-data` Not Found
+                    </div>
+                  )}
+
+                  {isHealed && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '-9px',
+                        right: '10px',
+                        backgroundColor: 'var(--status-passed)',
+                        color: '#FFFFFF',
+                        fontSize: '9px',
+                        fontWeight: 700,
+                        padding: '1px 6px',
+                        borderRadius: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '3px',
+                      }}
+                    >
+                      <Sparkles size={10} />
+                      AI Healed: `[data-testid="member-export-toggle"]`
+                    </div>
+                  )}
                 </div>
 
-                {/* Failed locator tag */}
-                {isStepFailed && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '-9px',
-                      right: '10px',
-                      backgroundColor: 'var(--status-failed)',
-                      color: '#FFFFFF',
-                      padding: '2px 6px',
-                      borderRadius: '4px',
-                      fontSize: '9px',
-                      fontWeight: 700,
-                    }}
-                  >
-                    ❌ SELECTOR NOT FOUND: By.id("toggle-export-data")
-                  </div>
-                )}
+                {/* Second Toggle */}
+                <div style={{ padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Enable cloud backup synchronization</span>
+                  <ToggleRight size={20} style={{ color: '#38BDF8' }} />
+                </div>
 
-                {/* Healed locator tag */}
-                {isHealed && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '-9px',
-                      right: '10px',
-                      backgroundColor: 'var(--status-passed)',
-                      color: '#FFFFFF',
-                      padding: '2px 6px',
-                      borderRadius: '4px',
-                      fontSize: '9px',
-                      fontWeight: 700,
-                    }}
-                  >
-                    ✅ REPAIRED: [data-testid="member-export-toggle"]
-                  </div>
-                )}
-              </div>
-
-              {/* Other normal toggles */}
-              <div
-                style={{
-                  padding: '0.65rem 0.75rem',
-                  borderRadius: 'var(--radius-md)',
-                  backgroundColor: 'var(--bg-surface-hover)',
-                  border: '1px solid var(--border-subtle)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  color: 'var(--text-secondary)',
-                }}
-              >
-                <span>Enable cloud backup synchronization</span>
-                <span style={{ color: 'var(--status-passed)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  ON <ToggleRight size={20} />
-                </span>
-              </div>
-
-              <div
-                style={{
-                  padding: '0.65rem 0.75rem',
-                  borderRadius: 'var(--radius-md)',
-                  backgroundColor: 'var(--bg-surface-hover)',
-                  border: '1px solid var(--border-subtle)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  color: 'var(--text-secondary)',
-                }}
-              >
-                <span>Enable audit logging for sensitive assets</span>
-                <span style={{ color: 'var(--status-passed)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  ON <ToggleRight size={20} />
-                </span>
+                {/* Third Toggle */}
+                <div style={{ padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Enable audit logging for sensitive assets</span>
+                  <ToggleRight size={20} style={{ color: '#38BDF8' }} />
+                </div>
               </div>
             </div>
-          </div>
-        ) : isWireTransfer ? (
-          /* Wire Transfer Simulated Web App View */
+          )
+        ) : (
+          /* Default: Wire Transfer View */
           <div
             style={{
               width: '100%',
-              maxWidth: '460px',
+              maxWidth: '420px',
               backgroundColor: 'var(--bg-surface)',
               borderRadius: 'var(--radius-lg)',
               padding: '1.25rem',
@@ -303,53 +464,23 @@ export const SimulatedBrowserViewport: React.FC<SimulatedBrowserViewportProps> =
               <div style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
                 International Wire Transfer
               </div>
-              <span className="badge badge-passed">Verified Tier-3</span>
+              <span className="badge badge-passed">Verified Sandbox</span>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: 'var(--text-xs)' }}>
               <div>
-                <label style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '2px' }}>
-                  Transfer Amount (USD)
-                </label>
-                <div style={{ padding: '0.45rem 0.65rem', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg-surface-hover)', fontWeight: 600 }}>
-                  $5,000.00 USD
+                <label style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>Recipient IBAN</label>
+                <div style={{ padding: '0.45rem 0.65rem', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg-surface-hover)', fontFamily: 'var(--font-mono)' }}>
+                  GB82 WEST 1234 5678 9012 34
                 </div>
               </div>
 
-              {/* MFA Modal Overlay */}
-              {currentStepIndex >= 1 && (
-                <div style={{ padding: '0.875rem', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-app)', border: '1px solid var(--border-medium)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', fontWeight: 600 }}>
-                    <Smartphone size={16} style={{ color: 'var(--accent-primary)' }} />
-                    <span>MFA Biometric & OTP Challenge</span>
-                  </div>
-                  <button
-                    style={{
-                      width: '100%',
-                      padding: '0.5rem',
-                      borderRadius: 'var(--radius-sm)',
-                      fontWeight: 600,
-                      fontSize: 'var(--text-xs)',
-                      backgroundColor: isStepFailed ? 'var(--status-failed-bg)' : isHealed ? 'var(--status-passed-bg)' : 'var(--accent-primary)',
-                      color: isStepFailed ? 'var(--status-failed)' : isHealed ? 'var(--status-passed)' : '#FFFFFF',
-                      border: isStepFailed ? '2px dashed var(--status-failed)' : '1px solid var(--border-subtle)',
-                    }}
-                  >
-                    Verify & Confirm Transfer
-                  </button>
+              <div>
+                <label style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>Amount (USD)</label>
+                <div style={{ padding: '0.45rem 0.65rem', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg-surface-hover)', fontWeight: 700, color: 'var(--accent-primary)' }}>
+                  $ 5,000.00 USD
                 </div>
-              )}
-            </div>
-          </div>
-        ) : (
-          /* Cards View */
-          <div style={{ width: '100%', maxWidth: '460px', backgroundColor: 'var(--bg-surface)', borderRadius: 'var(--radius-lg)', padding: '1.25rem', border: '1px solid var(--border-subtle)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', fontWeight: 600 }}>
-              <CreditCard size={18} style={{ color: 'var(--accent-primary)' }} />
-              <span>Virtual Cards Manager</span>
-            </div>
-            <div style={{ padding: '1rem', backgroundColor: 'var(--bg-app)', borderRadius: 'var(--radius-md)', textAlign: 'center', fontSize: 'var(--text-xs)' }}>
-              Virtual Card VISA-4091: Status {isHealed ? 'LOCKED (FROZEN)' : 'ACTIVE'}
+              </div>
             </div>
           </div>
         )}
