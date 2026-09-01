@@ -58,6 +58,9 @@ export const AutomationPage: React.FC = () => {
     abortExecution,
     approveSelfHealing,
     rejectSelfHealing,
+    injectDrift,
+    resetDemo,
+    setCustomLocator,
     setActiveTab,
     setActiveScenarioIdx,
   } = useAutomationEngine();
@@ -210,6 +213,8 @@ export const AutomationPage: React.FC = () => {
           onSelectScenario={(idx) => setActiveScenarioIdx(idx)}
           onAbortExecution={abortExecution}
           onOpenSelfHealingDiff={() => setActiveTab('healing-diff')}
+          onInjectDrift={() => injectDrift(activeScript.id)}
+          onResetDemo={resetDemo}
         />
       )}
 
@@ -232,6 +237,7 @@ export const AutomationPage: React.FC = () => {
             startExecution(script);
           }}
           onOpenSelfHealing={() => setActiveTab('healing-diff')}
+          onSetCustomLocator={setCustomLocator}
         />
       )}
 

@@ -57,6 +57,8 @@ interface LiveTestRunnerProps {
   onSelectScenario?: (idx: number) => void;
   onAbortExecution: () => void;
   onOpenSelfHealingDiff: () => void;
+  onInjectDrift?: () => void;
+  onResetDemo?: () => void;
 }
 
 export const LiveTestRunner: React.FC<LiveTestRunnerProps> = ({
@@ -76,6 +78,8 @@ export const LiveTestRunner: React.FC<LiveTestRunnerProps> = ({
   onSelectScenario,
   onAbortExecution,
   onOpenSelfHealingDiff,
+  onInjectDrift,
+  onResetDemo,
 }) => {
   const [viewMode, setViewMode] = useState<AutomationViewMode>('business_bdd');
   const [isTerminalExpanded, setIsTerminalExpanded] = useState<boolean>(false);
@@ -132,6 +136,76 @@ export const LiveTestRunner: React.FC<LiveTestRunnerProps> = ({
 
   return (
     <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      {/* Interactive Demo Controller Bar */}
+      <div
+        className="card"
+        style={{
+          padding: '0.75rem 1.25rem',
+          backgroundColor: 'rgba(56, 189, 248, 0.05)',
+          border: '1px solid rgba(56, 189, 248, 0.25)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '0.75rem',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Sparkles size={16} style={{ color: 'var(--ai-primary)' }} />
+          <span style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-primary)' }}>
+            Interactive Demo Controller:
+          </span>
+          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
+            Simulate frontend locator drift to test AI self-healing or reset back to clean baseline.
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <Button
+            variant="secondary"
+            size="sm"
+            leftIcon={<Zap size={13} style={{ color: 'var(--status-warning)' }} />}
+            disabled={isRunning}
+            onClick={onInjectDrift}
+            title="Break locator to demonstrate AI failure catch & auto-repair"
+          >
+            ⚡ Inject UI Drift (Break Locator)
+          </Button>
+
+          <Button
+            variant="secondary"
+            size="sm"
+            leftIcon={<RotateCw size={13} />}
+            disabled={isRunning}
+            onClick={onResetDemo}
+            title="Reset scenario back to clean baseline"
+          >
+            🔄 Reset Demo Scenario
+          </Button>
+
+          <div style={{ display: 'flex', gap: '4px' }}>
+            <Button
+              variant="ghost"
+              size="sm"
+              leftIcon={<Download size={13} />}
+              onClick={() => exportHealingReport(script, 'markdown')}
+              title="Download Markdown audit report"
+            >
+              Report (.md)
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              leftIcon={<FileText size={13} />}
+              onClick={() => exportHealingReport(script, 'html')}
+              title="Download styled HTML executive summary"
+            >
+              Report (.html)
+            </Button>
+          </div>
+        </div>
+      </div>
+
       {/* Multi-Scenario Tab Bar (When Feature has multiple scenarios) */}
       {subScenarios.length > 0 && (
         <div
@@ -473,14 +547,24 @@ export const LiveTestRunner: React.FC<LiveTestRunnerProps> = ({
             </div>
           </div>
 
-          <Button
-            variant="secondary"
-            size="sm"
-            leftIcon={<Download size={13} />}
-            onClick={() => exportHealingReport(script)}
-          >
-            Download Audit Report
-          </Button>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <Button
+              variant="secondary"
+              size="sm"
+              leftIcon={<Download size={13} />}
+              onClick={() => exportHealingReport(script, 'markdown')}
+            >
+              Report (.md)
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              leftIcon={<FileText size={13} />}
+              onClick={() => exportHealingReport(script, 'html')}
+            >
+              Report (.html)
+            </Button>
+          </div>
         </div>
       )}
 
@@ -525,14 +609,24 @@ export const LiveTestRunner: React.FC<LiveTestRunnerProps> = ({
             </div>
           </div>
 
-          <Button
-            variant="secondary"
-            size="sm"
-            leftIcon={<Download size={13} />}
-            onClick={() => exportHealingReport(script)}
-          >
-            Download Audit Report
-          </Button>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <Button
+              variant="secondary"
+              size="sm"
+              leftIcon={<Download size={13} />}
+              onClick={() => exportHealingReport(script, 'markdown')}
+            >
+              Report (.md)
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              leftIcon={<FileText size={13} />}
+              onClick={() => exportHealingReport(script, 'html')}
+            >
+              Report (.html)
+            </Button>
+          </div>
         </div>
       )}
 

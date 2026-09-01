@@ -7,7 +7,7 @@ import {
   FailureScenario,
   BddScenario,
 } from '../types';
-import { initialAutomationScripts } from '../services/automationMockData';
+import { initialAutomationScripts, mockFailureScenarios } from '../services/automationMockData';
 import {
   createInitialExecutionLogs,
   generateStepLogs,
@@ -450,6 +450,88 @@ export const useAutomationEngine = () => {
     }, 400);
   }, [healingProposal, scripts, activeScript, showToast, startExecution]);
 
+  // ⚡ Inject UI Drift (Break Locator for Live Demo)
+  const injectDrift = useCallback((scriptId?: string) => {
+    const targetId = scriptId || activeScriptId;
+    const failure = mockFailureScenarios.member_export_toggle_drift;
+
+    setScripts((prev) =>
+      prev.map((s) => {
+        if (s.id === targetId || s.storyKey === 'CLOUD-204') {
+          return {
+            ...s,
+            status: 'Flaky',
+            lastRunStatus: 'Failed',
+            failureScenario: failure,
+            healedAt: undefined,
+            steps: s.steps.map((st, idx) => ({
+              ...st,
+              status: idx === 2 ? 'failed' : 'pending',
+            })),
+          };
+        }
+        return s;
+      })
+    );
+
+    setActiveFailure(failure);
+    setIsHealedRun(false);
+    setRunStatus('idle');
+    setCurrentStepIndex(-1);
+    setActiveScenarioIdx(0);
+    setCompletedScenarioKeys([]);
+    setHealingProposal(null);
+
+    showToast(
+      '⚡ UI Drift Injected',
+      'Locator By.id("toggle-export-data") is now armed to fail at Step 3. Click "Run Scenario" to demonstrate AI Self-Healing.',
+      'info'
+    );
+  }, [activeScriptId, showToast]);
+
+  // 🔄 Reset Demo Baseline (Restore Clean State)
+  const resetDemo = useCallback(() => {
+    if (runnerTimeoutRef.current) clearTimeout(runnerTimeoutRef.current);
+    setScripts(initialAutomationScripts);
+    setActiveScriptId(initialAutomationScripts[0].id);
+    setActiveSteps(initialAutomationScripts[0].steps.map((st) => ({ ...st, status: 'pending' })));
+    setActiveFailure(initialAutomationScripts[0].failureScenario);
+    setRunStatus('idle');
+    setIsRunning(false);
+    setIsBatchRunning(false);
+    setCurrentStepIndex(-1);
+    setActiveScenarioIdx(0);
+    setCompletedScenarioKeys([]);
+    setHealingProposal(null);
+    setLogs([]);
+    showToast('🔄 Demo Reset', 'All automation scenarios and metrics restored to baseline.', 'success');
+  }, [showToast]);
+
+  // 🎛️ Manually Change Locator in Code Studio
+  const setCustomLocator = useCallback((locatorType: 'broken_id' | 'healed_testid' | 'custom_role') => {
+    if (locatorType === 'broken_id') {
+      injectDrift();
+    } else {
+      setScripts((prev) =>
+        prev.map((s) => {
+          if (s.id === activeScriptId || s.storyKey === 'CLOUD-204') {
+            return {
+              ...s,
+              status: 'Active',
+              lastRunStatus: 'Passed',
+              failureScenario: undefined,
+              healedAt: new Date().toISOString(),
+            };
+          }
+          return s;
+        })
+      );
+      setActiveFailure(undefined);
+      setIsHealedRun(true);
+      showToast('Locator Updated', `Switched Page Object selector to ${locatorType === 'healed_testid' ? 'data-testid' : 'semantic aria-role'}`, 'success');
+    }
+  }, [activeScriptId, injectDrift, showToast]);
+
   const rejectSelfHealing = useCallback(() => {
     setHealingProposal((prev) => (prev ? { ...prev, status: 'rejected' } : null));
     showToast('Proposal Rejected', 'Kept original Page Object selector without changes', 'info');
@@ -483,5 +565,8 @@ export const useAutomationEngine = () => {
     abortExecution,
     approveSelfHealing,
     rejectSelfHealing,
+    injectDrift,
+    resetDemo,
+    setCustomLocator,
   };
 };
