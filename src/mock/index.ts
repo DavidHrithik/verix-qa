@@ -71,6 +71,27 @@ export const mockUsers: User[] = [
 
 export const mockStories: UserStory[] = [
   {
+    id: 'story-cloud-204',
+    projectId: 'proj-1',
+    key: 'CLOUD-204',
+    title: 'Workspace Admin Data Export & PII Masking Governance Policy',
+    description: 'As an Organization Admin, I want to configure member data export permissions and privacy masking toggles to enforce zero-trust data compliance.',
+    acceptanceCriteria: [
+      'Admin can select any team member from the workspace member dropdown',
+      'The policy toggle "Enable member to export data to local storage" defaults to OFF',
+      'When toggled ON, an automated audit log entry must be recorded in the security ledger',
+      'Display active confirmation badge "Policy Enforced: Zero-Trust Local Storage"',
+      'The policy setting persists across sessions and reflects immediately in the member portal'
+    ],
+    status: 'Ready for QA',
+    priority: 'Critical',
+    assignee: mockUsers[1],
+    coverageStatus: 'Full',
+    testCaseCount: 3,
+    createdAt: '2026-08-28T09:00:00Z',
+    updatedAt: '2026-08-30T15:00:00Z',
+  },
+  {
     id: 'story-1',
     projectId: 'proj-1',
     key: 'DBANK-104',
@@ -131,6 +152,49 @@ export const mockStories: UserStory[] = [
 ];
 
 export const mockTestCases: TestCase[] = [
+  {
+    id: 'tc-201',
+    projectId: 'proj-1',
+    storyId: 'story-cloud-204',
+    key: 'TC-201',
+    title: 'Verify Workspace Admin can enable local data export toggle for team member',
+    type: 'Automated',
+    priority: 'Critical',
+    status: 'Approved',
+    isAiGenerated: true,
+    aiConfidence: 98,
+    tags: ['Admin', 'Security', 'Compliance', 'BDD'],
+    lastExecutionStatus: 'Passed',
+    steps: [
+      { stepNumber: 1, action: 'Given that CloudAdmin is logged in to Admin Console and launch Policy Utility', expectedResult: 'Cloud Admin Console permissions dashboard loaded' },
+      { stepNumber: 2, action: 'When user selects member "Sarah Jenkins (Data Analyst)" from dropdown', expectedResult: 'Member permissions policy panel populated' },
+      { stepNumber: 3, action: 'Then toggle for "Enable member to export data to local storage" should be ON', expectedResult: 'Toggle switch in active ON position (aria-checked=true)' },
+      { stepNumber: 4, action: 'When User turn OFF the toggle for export data', expectedResult: 'Toggle state changes to OFF and confirmation prompt shown' },
+      { stepNumber: 5, action: 'Then the user is logged out of the application', expectedResult: 'Session ended and login page displayed' }
+    ],
+    createdAt: '2026-08-28T10:00:00Z',
+    updatedAt: '2026-08-30T11:00:00Z',
+  },
+  {
+    id: 'tc-202',
+    projectId: 'proj-1',
+    storyId: 'story-cloud-204',
+    key: 'TC-202',
+    title: 'Verify non-admin role is blocked from modifying data export policy',
+    type: 'Automated',
+    priority: 'High',
+    status: 'Ready',
+    isAiGenerated: true,
+    aiConfidence: 94,
+    tags: ['Security', 'RBAC', 'Negative'],
+    lastExecutionStatus: 'Passed',
+    steps: [
+      { stepNumber: 1, action: 'Authenticate as standard DataAnalyst user', expectedResult: 'Standard member portal loaded' },
+      { stepNumber: 2, action: 'Attempt direct GET /admin/policies/export request', expectedResult: 'HTTP 403 Forbidden with Unauthorized Role alert' }
+    ],
+    createdAt: '2026-08-28T11:30:00Z',
+    updatedAt: '2026-08-30T12:00:00Z',
+  },
   {
     id: 'tc-1',
     projectId: 'proj-1',

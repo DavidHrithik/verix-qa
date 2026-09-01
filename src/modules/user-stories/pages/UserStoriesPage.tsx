@@ -12,20 +12,29 @@ import { useProject } from '../../../app/providers/ProjectProvider';
 import { useToast } from '../../../app/providers/ToastProvider';
 import { mockStories } from '../../../mock';
 import { UserStory } from '../../../types';
-
-// =========================================================================
-// MODULE: User Stories & Requirements Management
-// Owner: TBD (Team Member A)
-// Description: Ingestion of Jira / ADO stories, acceptance criteria parsing,
-// and automated requirement decomposition for QA validation.
-// =========================================================================
+import { CreateStoryModal } from '../components/CreateStoryModal';
 
 export const UserStoriesPage: React.FC = () => {
   const { activeProject } = useProject();
   const { showToast } = useToast();
+  const [stories, setStories] = useState<UserStory[]>(mockStories);
   const [search, setSearch] = useState('');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  const filteredStories = mockStories.filter(
+  const handleStoryCreated = (newStory: UserStory) => {
+    setStories((prev) => [newStory, ...prev]);
+    showToast('Story Created', `Saved ${newStory.key}: ${newStory.title}`, 'success');
+  };
+
+  const handleGenTests = (story: UserStory) => {
+    showToast(
+      'AI Test Generator',
+      `Synthesized 3 automated test scenarios for ${story.key}. Available in Test Cases module.`,
+      'success'
+    );
+  };
+
+  const filteredStories = stories.filter(
     (s: UserStory) =>
       s.title.toLowerCase().includes(search.toLowerCase()) ||
       s.key.toLowerCase().includes(search.toLowerCase())
@@ -91,7 +100,7 @@ export const UserStoriesPage: React.FC = () => {
           size="sm"
           variant="ai"
           leftIcon={<Sparkles size={13} />}
-          onClick={() => showToast('AI Test Generator', `Synthesizing test suite for ${story.key}`, 'info')}
+          onClick={() => handleGenTests(story)}
         >
           Gen Tests
         </Button>
@@ -111,19 +120,12 @@ export const UserStoriesPage: React.FC = () => {
             variant="primary"
             size="sm"
             leftIcon={<Plus size={14} />}
-            onClick={() => showToast('Create Story', 'Opening story creator modal', 'info')}
+            onClick={() => setIsCreateModalOpen(true)}
           >
             Import / Create Story
           </Button>
         }
       />
-
-      <div style={{ marginBottom: '1.25rem' }}>
-        <Alert variant="info" title="Module Boundary: User Stories">
-          This module is ready for team implementation. Code should be isolated inside{' '}
-          <code>src/modules/user-stories/</code>. See developer documentation for extension points.
-        </Alert>
-      </div>
 
       {/* Filter & Search Bar */}
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.25rem', alignItems: 'center' }}>
@@ -145,6 +147,13 @@ export const UserStoriesPage: React.FC = () => {
         columns={columns}
         data={filteredStories}
         keyExtractor={(s: UserStory) => s.id}
+      />
+
+      {/* Interactive Modal for Creating / Importing Stories */}
+      <CreateStoryModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onStoryCreated={handleStoryCreated}
       />
     </div>
   );

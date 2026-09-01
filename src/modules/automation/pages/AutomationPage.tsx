@@ -1,172 +1,241 @@
-import React from 'react';
-import { Cpu, Play, Sparkles, CheckCircle2, AlertTriangle, RefreshCw, Terminal } from 'lucide-react';
+import React, { useState } from 'react';
+import {
+  Cpu,
+  Play,
+  Sparkles,
+  CheckCircle2,
+  AlertTriangle,
+  RotateCw,
+  Terminal,
+  FileCode2,
+  Code2,
+  ShieldCheck,
+  Zap,
+  Layers,
+} from 'lucide-react';
 import { PageHeader } from '../../../components/layout/PageHeader';
-import { Card } from '../../../components/layout/Card';
 import { Button } from '../../../components/ui/Button';
-import { Table, Column } from '../../../components/ui/Table';
-import { Badge } from '../../../components/ui/Badge';
-import { StatusIndicator } from '../../../components/ui/StatusIndicator';
+import { Tabs, TabItem } from '../../../components/ui/Tabs';
 import { Alert } from '../../../components/feedback/Alert';
 import { useProject } from '../../../app/providers/ProjectProvider';
 import { useToast } from '../../../app/providers/ToastProvider';
-import { AutomationScript } from '../../../types';
 
-// =========================================================================
-// MODULE 5: Self-Healing Automation & Script Runner
-// Owner: TBD (Team Member E)
-// Description: Automated runner for Playwright/Cypress suites, equipped with
-// real-time DOM-tree mutation detection and heuristic self-healing selector engines.
-// =========================================================================
-
-const mockScripts: AutomationScript[] = [
-  {
-    id: 'auto-1',
-    projectId: 'proj-1',
-    testCaseId: 'tc-1',
-    name: 'e2e/wire-transfer-swift-validation.spec.ts',
-    framework: 'Playwright',
-    repoPath: 'tests/e2e/payments/wire-transfer.spec.ts',
-    status: 'Active',
-    lastRunStatus: 'Passed',
-    lastExecutedAt: '2026-08-30T09:12:00Z',
-  },
-  {
-    id: 'auto-2',
-    projectId: 'proj-1',
-    testCaseId: 'tc-2',
-    name: 'e2e/mfa-biometric-challenge.spec.ts',
-    framework: 'Playwright',
-    repoPath: 'tests/e2e/auth/mfa-challenge.spec.ts',
-    status: 'Healed',
-    lastRunStatus: 'Passed',
-    selfHealingLogs: [
-      {
-        healedAt: '2026-08-30T09:14:22Z',
-        oldSelector: 'button#btn-mfa-submit',
-        newSelector: 'button[data-testid="mfa-auth-submit"]',
-        confidence: 98,
-      },
-    ],
-    lastExecutedAt: '2026-08-30T09:14:00Z',
-  },
-  {
-    id: 'auto-3',
-    projectId: 'proj-1',
-    testCaseId: 'tc-3',
-    name: 'e2e/virtual-card-limit-freeze.spec.ts',
-    framework: 'Cypress',
-    repoPath: 'cypress/e2e/cards/freeze-toggle.cy.ts',
-    status: 'Flaky',
-    lastRunStatus: 'Failed',
-    lastExecutedAt: '2026-08-30T08:45:00Z',
-  },
-];
+import { useAutomationEngine, AutomationTab } from '../hooks/useAutomationEngine';
+import { AutomationStatsBar } from '../components/AutomationStatsBar';
+import { ScriptCatalog } from '../components/ScriptCatalog';
+import { ScriptSynthesizerModal } from '../components/ScriptSynthesizerModal';
+import { ScriptCodeStudio } from '../components/ScriptCodeStudio';
+import { LiveTestRunner } from '../components/LiveTestRunner';
+import { SelfHealingDiffStudio } from '../components/SelfHealingDiffStudio';
+import { AutomationScriptExtended } from '../types';
 
 export const AutomationPage: React.FC = () => {
   const { activeProject } = useProject();
   const { showToast } = useToast();
+  const [isSynthesizerOpen, setIsSynthesizerOpen] = useState<boolean>(false);
 
-  const columns: Column<AutomationScript>[] = [
+  const {
+    scripts,
+    activeScript,
+    activeScriptId,
+    activeTab,
+    isRunning,
+    currentStepIndex,
+    activeSteps,
+    logs,
+    runStatus,
+    activeFailure,
+    isHealedRun,
+    healingProposal,
+    selectScript,
+    addScript,
+    startExecution,
+    abortExecution,
+    approveSelfHealing,
+    rejectSelfHealing,
+    setActiveTab,
+  } = useAutomationEngine();
+
+  const handleScriptGenerated = (newScript: AutomationScriptExtended) => {
+    addScript(newScript);
+    // Switch to runner immediately
+    setTimeout(() => {
+      startExecution(newScript);
+    }, 400);
+  };
+
+  const tabs: TabItem[] = [
     {
-      key: 'name',
-      header: 'Automation Script & Path',
-      render: (script: AutomationScript) => (
-        <div>
-          <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)' }}>
-            {script.name}
-          </div>
-          <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-            {script.repoPath}
-          </div>
-        </div>
-      ),
+      id: 'catalog',
+      label: 'Script Catalog',
+      count: scripts.length,
+      icon: <Layers size={14} />,
     },
     {
-      key: 'framework',
-      header: 'Framework',
-      width: '120px',
-      render: (script: AutomationScript) => <span className="badge badge-default">{script.framework}</span>,
+      id: 'runner',
+      label: 'Live Test Runner',
+      count: isRunning ? 'RUNNING' : runStatus === 'failed' ? 'FAILED' : runStatus === 'healed' ? 'PASSED' : undefined,
+      icon: <Play size={14} />,
     },
     {
-      key: 'status',
-      header: 'Engine Status',
-      width: '130px',
-      render: (script: AutomationScript) => {
-        const variant = script.status === 'Healed' ? 'ai' : script.status === 'Active' ? 'passed' : 'warning';
-        return <Badge variant={variant}>{script.status}</Badge>;
-      },
+      id: 'healing-diff',
+      label: 'AI Self-Healing Diff',
+      count: healingProposal ? 'PROPOSAL' : undefined,
+      icon: <Sparkles size={14} style={{ color: 'var(--ai-primary)' }} />,
     },
     {
-      key: 'lastRunStatus',
-      header: 'Last Pipeline Run',
-      width: '130px',
-      render: (script: AutomationScript) => {
-        const variant = script.lastRunStatus === 'Passed' ? 'passed' : 'failed';
-        return <Badge variant={variant}>{script.lastRunStatus}</Badge>;
-      },
-    },
-    {
-      key: 'selfHealing',
-      header: 'Self-Healing Telemetry',
-      render: (script: AutomationScript) => {
-        if (script.selfHealingLogs && script.selfHealingLogs.length > 0) {
-          return (
-            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--ai-primary)' }}>
-              Repaired selector (98% confidence)
-            </div>
-          );
-        }
-        return <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>No selector drift</span>;
-      },
-    },
-    {
-      key: 'actions',
-      header: 'Action',
-      width: '120px',
-      render: (script: AutomationScript) => (
-        <Button
-          size="sm"
-          variant="secondary"
-          leftIcon={<Play size={12} />}
-          onClick={() => showToast('Dispatched', `Running ${script.name}`, 'success')}
-        >
-          Run
-        </Button>
-      ),
+      id: 'studio',
+      label: 'Code Studio',
+      icon: <Code2 size={14} />,
     },
   ];
 
   return (
     <div className="animate-fade-in">
+      {/* Page Header */}
       <PageHeader
-        title="Self-Healing Automation"
-        description={`Test runner execution and intelligent self-healing selector engine for ${activeProject.name}.`}
+        title="Self-Healing Automation & Runner"
+        description="Automated test execution with AI-powered locator self-healing and instant failure recovery."
         breadcrumbs={[{ label: 'Home', href: '/' }, { label: 'Automation' }]}
-        badge={<span className="badge badge-primary">Engine Online</span>}
+        badge={
+          <span className="badge badge-ai" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+            <Sparkles size={12} /> AI Healing Engine Online
+          </span>
+        }
         actions={
-          <Button
-            variant="primary"
-            size="sm"
-            leftIcon={<Play size={14} />}
-            onClick={() => showToast('Pipeline Triggered', 'Executing all smoke & regression suites', 'success')}
-          >
-            Execute All Suites
-          </Button>
+          <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <Button
+              variant="secondary"
+              size="sm"
+              leftIcon={<Play size={13} />}
+              onClick={() => {
+                setActiveTab('runner');
+                startExecution(activeScript);
+              }}
+            >
+              Run Active Suite
+            </Button>
+            <Button
+              variant="ai"
+              size="sm"
+              leftIcon={<Sparkles size={14} />}
+              onClick={() => setIsSynthesizerOpen(true)}
+            >
+              Synthesize From Story
+            </Button>
+          </div>
         }
       />
 
-      <div style={{ marginBottom: '1.25rem' }}>
-        <Alert variant="info" title="Module Boundary: Self-Healing Automation">
-          // MODULE 5: Self-Healing Automation implementation goes here.
-          <br />
-          Owner: TBD. Modular files live inside <code>src/modules/automation/</code>.
-        </Alert>
+      {/* Workflow Navigation Banner */}
+      <div
+        className="card"
+        style={{
+          padding: '0.75rem 1.25rem',
+          marginBottom: '1.25rem',
+          backgroundColor: 'var(--bg-surface)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '0.5rem',
+          fontSize: 'var(--text-xs)',
+          border: '1px solid var(--border-subtle)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+          <span style={{ color: 'var(--accent-primary)' }}>End-to-End Workflow:</span>
+          <span>1. User Story</span>
+          <span style={{ color: 'var(--text-muted)' }}>➔</span>
+          <span>2. Synthesize Script</span>
+          <span style={{ color: 'var(--text-muted)' }}>➔</span>
+          <span>3. Run & Detect Drift</span>
+          <span style={{ color: 'var(--text-muted)' }}>➔</span>
+          <span>4. AI Root Cause & Diff</span>
+          <span style={{ color: 'var(--text-muted)' }}>➔</span>
+          <span style={{ color: 'var(--status-passed)' }}>5. Re-run & Verified Pass</span>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <button
+            onClick={() => setIsSynthesizerOpen(true)}
+            className="btn btn-ghost"
+            style={{ fontSize: '11px', padding: '2px 6px', color: 'var(--accent-primary)' }}
+          >
+            Quick Synthesize
+          </button>
+        </div>
       </div>
 
-      <Table<AutomationScript>
-        columns={columns}
-        data={mockScripts}
-        keyExtractor={(script: AutomationScript) => script.id}
+      {/* Top Telemetry KPI Bar */}
+      <AutomationStatsBar scripts={scripts} />
+
+      {/* Main Tabs Navigation */}
+      <div style={{ marginBottom: '1.25rem' }}>
+        <Tabs
+          tabs={tabs}
+          activeTab={activeTab}
+          onChange={(tabId) => setActiveTab(tabId as AutomationTab)}
+        />
+      </div>
+
+      {/* Tab Panels */}
+      {activeTab === 'catalog' && (
+        <ScriptCatalog
+          scripts={scripts}
+          activeScriptId={activeScriptId}
+          onSelectScript={(script, targetTab) => selectScript(script, targetTab || 'studio')}
+          onOpenSynthesizer={() => setIsSynthesizerOpen(true)}
+          onExecuteScript={(script) => {
+            setActiveTab('runner');
+            startExecution(script);
+          }}
+        />
+      )}
+
+      {activeTab === 'runner' && (
+        <LiveTestRunner
+          script={activeScript}
+          isRunning={isRunning}
+          currentStepIndex={currentStepIndex}
+          steps={activeSteps}
+          logs={logs}
+          runStatus={runStatus}
+          isHealedRun={isHealedRun}
+          activeFailure={activeFailure}
+          onStartExecution={(forceHealed) => startExecution(activeScript, forceHealed)}
+          onAbortExecution={abortExecution}
+          onOpenSelfHealingDiff={() => setActiveTab('healing-diff')}
+        />
+      )}
+
+      {activeTab === 'healing-diff' && (
+        <SelfHealingDiffStudio
+          proposal={healingProposal}
+          onApprove={approveSelfHealing}
+          onReject={rejectSelfHealing}
+          onCancel={() => setActiveTab('runner')}
+        />
+      )}
+
+      {activeTab === 'studio' && (
+        <ScriptCodeStudio
+          script={activeScript}
+          allScripts={scripts}
+          onSelectScript={(s) => selectScript(s, 'studio')}
+          onExecute={(script) => {
+            setActiveTab('runner');
+            startExecution(script);
+          }}
+          onOpenSelfHealing={() => setActiveTab('healing-diff')}
+        />
+      )}
+
+      {/* Modal for AI Script Synthesis */}
+      <ScriptSynthesizerModal
+        isOpen={isSynthesizerOpen}
+        onClose={() => setIsSynthesizerOpen(false)}
+        onScriptGenerated={handleScriptGenerated}
       />
     </div>
   );
