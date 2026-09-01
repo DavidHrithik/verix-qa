@@ -94,12 +94,12 @@ export const initialAutomationScripts: AutomationScriptExtended[] = [
     name: 'CLOUD204_Data_Export_Policy.feature',
     framework: 'Playwright',
     repoPath: 'src/test/resources/features/CloudGovernance/CLOUD204_Data_Export_Policy.feature',
-    status: 'Flaky',
-    lastRunStatus: 'Failed',
+    status: 'Active',
+    lastRunStatus: 'Passed',
     lastExecutedAt: '2026-08-30T09:14:00Z',
     executionCount: 12,
     lastExecutionDuration: 4.6,
-    failureScenario: mockFailureScenarios.member_export_toggle_drift,
+    failureScenario: undefined,
     gherkinContent: `@CLOUD204 @cloud @governance @security @compliance @run
 Feature: CLOUD-204 - Workspace Admin Data Export & PII Masking Governance Policy
 

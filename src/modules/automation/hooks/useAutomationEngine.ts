@@ -15,11 +15,35 @@ import {
 import { useToast } from '../../../app/providers/ToastProvider';
 
 export type AutomationTab = 'catalog' | 'synthesizer' | 'studio' | 'runner' | 'healing-diff';
+const STORAGE_KEY_AUTOMATION = 'verix_automation_scripts_v4';
 
 export const useAutomationEngine = () => {
   const { showToast } = useToast();
 
-  const [scripts, setScripts] = useState<AutomationScriptExtended[]>(initialAutomationScripts);
+  const [scripts, setScripts] = useState<AutomationScriptExtended[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_AUTOMATION);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to load automation scripts from storage', e);
+    }
+    return initialAutomationScripts;
+  });
+
+  // Save scripts to localStorage on update
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_AUTOMATION, JSON.stringify(scripts));
+    } catch (e) {
+      console.warn('Failed to save automation scripts to storage', e);
+    }
+  }, [scripts]);
+
   const [activeScriptId, setActiveScriptId] = useState<string>(initialAutomationScripts[0].id);
   const [activeTab, setActiveTab] = useState<AutomationTab>('catalog');
 
@@ -150,7 +174,8 @@ export const useAutomationEngine = () => {
                 ? {
                     ...s,
                     lastRunStatus: 'Passed',
-                    status: forceHealed ? 'Healed' : s.status,
+                    status: forceHealed ? 'Healed' : 'Active',
+                    failureScenario: undefined,
                     executionCount: s.executionCount + 1,
                     lastExecutedAt: new Date().toISOString(),
                     steps: currentStepList.map((st) => ({ ...st, status: 'passed' })),
