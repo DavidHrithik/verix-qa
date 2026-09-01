@@ -20,10 +20,11 @@ import { Badge } from '../../../components/ui/Badge';
 import { UserStory, PriorityLevel } from '../../../types';
 import { useProject } from '../../../app/providers/ProjectProvider';
 
-type IngestionTab = 'jira' | 'excel' | 'manual';
+export type IngestionTab = 'jira' | 'excel' | 'manual';
 
 interface StoryIngestionModalProps {
   isOpen: boolean;
+  initialTab?: IngestionTab;
   onClose: () => void;
   onImportStories: (stories: UserStory[]) => void;
 }
@@ -111,11 +112,19 @@ const SAMPLE_JIRA_DATA: Record<string, Array<{
 
 export const StoryIngestionModal: React.FC<StoryIngestionModalProps> = ({
   isOpen,
+  initialTab = 'jira',
   onClose,
   onImportStories,
 }) => {
   const { activeProject } = useProject();
-  const [activeTab, setActiveTab] = useState<IngestionTab>('jira');
+  const [activeTab, setActiveTab] = useState<IngestionTab>(initialTab);
+
+  // Sync activeTab when modal is opened with an initialTab
+  React.useEffect(() => {
+    if (isOpen) {
+      setActiveTab(initialTab);
+    }
+  }, [isOpen, initialTab]);
 
   // --- Jira Tab State ---
   const [jiraDomain, setJiraDomain] = useState('smith-nephew.atlassian.net');

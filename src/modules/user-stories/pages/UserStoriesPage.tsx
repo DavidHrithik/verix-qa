@@ -25,10 +25,18 @@ import { useProject } from '../../../app/providers/ProjectProvider';
 import { useToast } from '../../../app/providers/ToastProvider';
 import { mockStories } from '../../../mock';
 import { UserStory, PriorityLevel } from '../../../types';
-import { StoryIngestionModal } from '../components/StoryIngestionModal';
+import { StoryIngestionModal, IngestionTab } from '../components/StoryIngestionModal';
 import { StoryDetailsDrawer } from '../components/StoryDetailsDrawer';
 
 const STORAGE_KEY_STORIES = 'verix_stories_v2';
+
+export const JiraIcon: React.FC<{ size?: number }> = ({ size = 16 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+    <path d="M11.53 2c0 5.257 4.26 9.519 9.517 9.519h.953V2h-10.47z" fill="#0052CC"/>
+    <path d="M6.287 7.243c0 5.257 4.26 9.519 9.517 9.519h.953V7.243H6.287z" fill="#2684FF"/>
+    <path d="M1.043 12.486c0 5.257 4.26 9.519 9.517 9.519h.953v-9.519H1.043z" fill="#0052CC"/>
+  </svg>
+);
 
 export const UserStoriesPage: React.FC = () => {
   const { activeProject } = useProject();
@@ -62,12 +70,18 @@ export const UserStoriesPage: React.FC = () => {
 
   // Modal & Drawer State
   const [isIngestionOpen, setIsIngestionOpen] = useState(false);
+  const [ingestionTab, setIngestionTab] = useState<IngestionTab>('jira');
   const [selectedStory, setSelectedStory] = useState<UserStory | null>(null);
 
   // Filters & Search
   const [search, setSearch] = useState('');
   const [priorityFilter, setPriorityFilter] = useState<string>('All');
   const [sourceFilter, setSourceFilter] = useState<string>('All');
+
+  const openIngestion = (tab: IngestionTab) => {
+    setIngestionTab(tab);
+    setIsIngestionOpen(true);
+  };
 
   // Filter for active workspace
   const projectStories = allStories.filter((s: UserStory) => s.projectId === activeProject.id);
@@ -105,8 +119,8 @@ export const UserStoriesPage: React.FC = () => {
           <span
             style={{
               fontSize: '10px',
-              color: '#0EA5E9',
-              background: 'rgba(14,165,233,0.1)',
+              color: '#0052CC',
+              background: 'rgba(0,82,204,0.1)',
               padding: '1px 6px',
               borderRadius: 'var(--radius-full)',
               fontWeight: 600,
@@ -115,7 +129,7 @@ export const UserStoriesPage: React.FC = () => {
               gap: '3px'
             }}
           >
-            <ExternalLink size={9} /> Jira
+            <JiraIcon size={10} /> Jira
           </span>
         );
       case 'excel':
@@ -123,8 +137,8 @@ export const UserStoriesPage: React.FC = () => {
           <span
             style={{
               fontSize: '10px',
-              color: '#22C55E',
-              background: 'rgba(34,197,94,0.1)',
+              color: '#107C41',
+              background: 'rgba(16,124,65,0.1)',
               padding: '1px 6px',
               borderRadius: 'var(--radius-full)',
               fontWeight: 600,
@@ -249,14 +263,58 @@ export const UserStoriesPage: React.FC = () => {
         breadcrumbs={[{ label: 'Home', href: '/' }, { label: 'User Stories' }]}
         badge={<span className="badge badge-default">{projectStories.length} Stories</span>}
         actions={
-          <Button
-            variant="primary"
-            size="sm"
-            leftIcon={<Plus size={14} />}
-            onClick={() => setIsIngestionOpen(true)}
-          >
-            Import / Create Story
-          </Button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+            {/* Dedicated Jira Import Button */}
+            <button
+              onClick={() => openIngestion('jira')}
+              style={{
+                background: 'linear-gradient(135deg, #0052CC 0%, #2684FF 100%)',
+                border: 'none',
+                color: '#FFFFFF',
+                padding: '0.45rem 0.85rem',
+                borderRadius: 'var(--radius-md)',
+                fontSize: 'var(--text-sm)',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                boxShadow: '0 2px 8px rgba(0,82,204,0.3)',
+                transition: 'all 0.15s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,82,204,0.45)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,82,204,0.3)';
+              }}
+            >
+              <JiraIcon size={16} />
+              <span>Import from Jira</span>
+            </button>
+
+            {/* Upload Excel Button */}
+            <Button
+              variant="secondary"
+              size="sm"
+              leftIcon={<FileSpreadsheet size={14} color="#107C41" />}
+              onClick={() => openIngestion('excel')}
+            >
+              Upload Excel
+            </Button>
+
+            {/* Manual New Story Button */}
+            <Button
+              variant="primary"
+              size="sm"
+              leftIcon={<Plus size={14} />}
+              onClick={() => openIngestion('manual')}
+            >
+              New Story
+            </Button>
+          </div>
         }
       />
 
@@ -344,6 +402,7 @@ export const UserStoriesPage: React.FC = () => {
       {/* Ingestion Modal (Jira, Excel, Manual) */}
       <StoryIngestionModal
         isOpen={isIngestionOpen}
+        initialTab={ingestionTab}
         onClose={() => setIsIngestionOpen(false)}
         onImportStories={handleImportStories}
       />
