@@ -335,34 +335,6 @@ export const LiveTestRunner: React.FC<LiveTestRunnerProps> = ({
             >
               <Sparkles size={11} /> AI Self-Healing Engine Active
             </span>
-
-            {/* In-Runner Simulate UI Drift Toggle (Only on Scenario 1) */}
-            {currentScenarioIdx === 0 && !isBatchRunning && (
-              <label
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  fontSize: '11px',
-                  color: 'var(--text-secondary)',
-                  cursor: 'pointer',
-                  backgroundColor: 'var(--bg-surface-hover)',
-                  padding: '2px 8px',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid var(--border-subtle)',
-                }}
-                title="Toggle selector drift simulation on Scenario 1 to demonstrate AI auto-recovery"
-              >
-                <input
-                  type="checkbox"
-                  checked={simulateDrift}
-                  disabled={isRunning}
-                  onChange={(e) => setSimulateDrift(e.target.checked)}
-                  style={{ cursor: 'pointer', accentColor: 'var(--accent-primary)' }}
-                />
-                <span>Simulate UI Drift (AI Demo)</span>
-              </label>
-            )}
           </div>
 
           <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>

@@ -9,8 +9,6 @@ import {
   FileText,
   Layers,
   ChevronRight,
-  Zap,
-  Sliders,
 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
@@ -34,11 +32,9 @@ export const ScriptCodeStudio: React.FC<ScriptCodeStudioProps> = ({
   onSelectScript,
   onExecute,
   onOpenSelfHealing,
-  onSetCustomLocator,
 }) => {
   const [copied, setCopied] = useState(false);
   const [viewFormat, setViewFormat] = useState<'feature' | 'pom'>('feature');
-  const [activeLocatorStrategy, setActiveLocatorStrategy] = useState<'broken_id' | 'healed_testid' | 'custom_role'>('broken_id');
 
   const handleCopy = () => {
     const textToCopy = viewFormat === 'feature' ? (script.gherkinContent || script.code) : (script.pageObjectClass || script.code);
@@ -47,95 +43,10 @@ export const ScriptCodeStudio: React.FC<ScriptCodeStudioProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleStrategyChange = (type: 'broken_id' | 'healed_testid' | 'custom_role') => {
-    setActiveLocatorStrategy(type);
-    if (onSetCustomLocator) {
-      onSetCustomLocator(type);
-    }
-  };
-
   const isHealed = script.status === 'Healed' || (script.selfHealingLogs && script.selfHealingLogs.length > 0);
 
   return (
     <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-      {/* Interactive POM Locator Mutator Bar */}
-      <div
-        className="card"
-        style={{
-          padding: '0.75rem 1.25rem',
-          backgroundColor: 'rgba(56, 189, 248, 0.05)',
-          border: '1px solid rgba(56, 189, 248, 0.25)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '0.75rem',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          <Sliders size={16} style={{ color: 'var(--accent-primary)' }} />
-          <div>
-            <span style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-primary)' }}>
-              Interactive Locator Mutator (Live Demo Control):
-            </span>
-            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginLeft: '6px' }}>
-              Switch the underlying Page Object locator to test drift interception or verified passes.
-            </span>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <button
-            onClick={() => handleStrategyChange('broken_id')}
-            style={{
-              padding: '0.35rem 0.65rem',
-              borderRadius: 'var(--radius-sm)',
-              fontSize: '11px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              border: '1px solid',
-              backgroundColor: activeLocatorStrategy === 'broken_id' ? 'rgba(239, 68, 68, 0.15)' : 'var(--bg-surface)',
-              borderColor: activeLocatorStrategy === 'broken_id' ? 'var(--status-failed)' : 'var(--border-subtle)',
-              color: activeLocatorStrategy === 'broken_id' ? 'var(--status-failed)' : 'var(--text-secondary)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-            }}
-          >
-            <span>🔴 Legacy Broken ID (`#toggle-export-data`)</span>
-          </button>
-
-          <button
-            onClick={() => handleStrategyChange('healed_testid')}
-            style={{
-              padding: '0.35rem 0.65rem',
-              borderRadius: 'var(--radius-sm)',
-              fontSize: '11px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              border: '1px solid',
-              backgroundColor: activeLocatorStrategy === 'healed_testid' ? 'rgba(16, 185, 129, 0.15)' : 'var(--bg-surface)',
-              borderColor: activeLocatorStrategy === 'healed_testid' ? 'var(--status-passed)' : 'var(--border-subtle)',
-              color: activeLocatorStrategy === 'healed_testid' ? 'var(--status-passed)' : 'var(--text-secondary)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-            }}
-          >
-            <span>🟢 AI Healed Test-ID (`[data-testid='member-export-toggle']`)</span>
-          </button>
-
-          <Button
-            size="sm"
-            variant="ai"
-            leftIcon={<Play size={13} />}
-            onClick={() => onExecute(script)}
-          >
-            Run Test with Selected Locator
-          </Button>
-        </div>
-      </div>
-
       {/* Studio Header Bar */}
       <div
         className="card"
@@ -262,9 +173,9 @@ export const ScriptCodeStudio: React.FC<ScriptCodeStudioProps> = ({
                 // Underlying Page Object Model glue code connecting Gherkin step actions to DOM locators
               </div>
               <pre style={{ margin: 0 }}>
-                {activeLocatorStrategy === 'broken_id'
-                  ? script.pageObjectClass || script.code
-                  : script.healedPageObjectClass || script.code}
+                {isHealed && script.healedPageObjectClass
+                  ? script.healedPageObjectClass
+                  : script.pageObjectClass || script.code}
               </pre>
             </div>
           )
