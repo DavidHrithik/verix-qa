@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Project } from '../../types';
 import { mockProjects } from '../../mock';
 
@@ -10,11 +10,58 @@ interface ProjectContextType {
   updateProject: (id: string, changes: Partial<Omit<Project, 'id' | 'createdAt'>>) => void;
 }
 
+const STORAGE_KEY_PROJECTS = 'verix_projects_v1';
+const STORAGE_KEY_ACTIVE = 'verix_active_project_id_v1';
+
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
 export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [projects, setProjects] = useState<Project[]>(mockProjects);
-  const [activeProjectId, setActiveProjectIdState] = useState<string>(mockProjects[0].id);
+  // Initialize projects from localStorage if available, otherwise mockProjects
+  const [projects, setProjects] = useState<Project[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_PROJECTS);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to load projects from localStorage:', err);
+    }
+    return mockProjects;
+  });
+
+  // Initialize activeProjectId from localStorage or first project
+  const [activeProjectId, setActiveProjectIdState] = useState<string>(() => {
+    try {
+      const savedActive = localStorage.getItem(STORAGE_KEY_ACTIVE);
+      if (savedActive) {
+        return savedActive;
+      }
+    } catch (err) {
+      console.warn('Failed to load activeProjectId from localStorage:', err);
+    }
+    return mockProjects[0].id;
+  });
+
+  // Persist projects to localStorage on change
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_PROJECTS, JSON.stringify(projects));
+    } catch (err) {
+      console.warn('Failed to save projects to localStorage:', err);
+    }
+  }, [projects]);
+
+  // Persist active project to localStorage on change
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_ACTIVE, activeProjectId);
+    } catch (err) {
+      console.warn('Failed to save activeProjectId to localStorage:', err);
+    }
+  }, [activeProjectId]);
 
   const activeProject = projects.find((p) => p.id === activeProjectId) || projects[0];
 
@@ -47,7 +94,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
       {children}
     </ProjectContext.Provider>
   );
-
 };
 
 export const useProject = (): ProjectContextType => {
