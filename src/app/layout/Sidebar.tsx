@@ -15,6 +15,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
+import { useProject } from '../../app/providers/ProjectProvider';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -29,9 +30,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isMobileOpen,
   onCloseMobile,
 }) => {
+  const { projects } = useProject();
+
   const navItems = [
     { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-    { label: 'Projects', path: '/projects', icon: FolderKanban, badge: '3' },
+    { label: 'Projects', path: '/projects', icon: FolderKanban, badge: String(projects.length) },
     { label: 'User Stories', path: '/user-stories', icon: Layers, badge: '42' },
     { label: 'Coverage Bridge', path: '/coverage', icon: ShieldCheck },
     { label: 'Test Cases', path: '/test-cases', icon: FileCode2, badge: '198' },
