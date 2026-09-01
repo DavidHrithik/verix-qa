@@ -36,7 +36,19 @@ export const StoryDetailModal: React.FC<StoryDetailModalProps> = ({
   if (!story) return null;
 
   const linkedTestCases = Array.from(
-    new Map(mockTestCases.filter((tc) => tc.storyId === story.id).map((tc) => [tc.key, tc])).values()
+    new Map(
+      mockTestCases
+        .filter(
+          (tc) =>
+            tc.storyId === story.id ||
+            tc.storyId === story.key ||
+            (story.key === 'AUTH-101' && (tc.key.startsWith('TC-10') || tc.storyId?.includes('auth'))) ||
+            (story.key === 'CLOUD-204' && (tc.key.startsWith('TC-20') || tc.storyId?.includes('cloud'))) ||
+            (story.key === 'DBANK-104' && (tc.key.startsWith('TC-30') || tc.storyId?.includes('dbank-104'))) ||
+            (story.key === 'DBANK-108' && (tc.key.startsWith('TC-40') || tc.storyId?.includes('dbank-108')))
+        )
+        .map((tc) => [tc.key, tc])
+    ).values()
   );
 
   return (
