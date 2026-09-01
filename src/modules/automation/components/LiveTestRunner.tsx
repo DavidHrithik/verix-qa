@@ -189,7 +189,25 @@ export const LiveTestRunner: React.FC<LiveTestRunnerProps> = ({
             🔄 Reset Demo Scenario
           </Button>
 
-          <div style={{ display: 'flex', gap: '4px' }}>
+          <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+            <Button
+              variant="secondary"
+              size="sm"
+              leftIcon={<FileText size={13} style={{ color: '#38BDF8' }} />}
+              onClick={() => exportHealingReport(script, 'extent-pdf')}
+              title="Generate and print ExtentReport.pdf with embedded step screenshots"
+            >
+              📄 ExtentReport (.pdf)
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              leftIcon={<Download size={13} />}
+              onClick={() => exportHealingReport(script, 'extent-html')}
+              title="Download standalone ExtentReport.html dashboard"
+            >
+              📊 Extent (.html)
+            </Button>
             <Button
               variant="ghost"
               size="sm"
@@ -197,16 +215,7 @@ export const LiveTestRunner: React.FC<LiveTestRunnerProps> = ({
               onClick={() => exportHealingReport(script, 'markdown')}
               title="Download Markdown audit report"
             >
-              Report (.md)
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              leftIcon={<FileText size={13} />}
-              onClick={() => exportHealingReport(script, 'html')}
-              title="Download styled HTML executive summary"
-            >
-              Report (.html)
+              .md
             </Button>
           </div>
         </div>

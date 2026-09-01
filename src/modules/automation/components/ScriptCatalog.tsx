@@ -235,10 +235,10 @@ export const ScriptCatalog: React.FC<ScriptCatalogProps> = ({
                       size="sm"
                       variant="secondary"
                       leftIcon={<Download size={13} />}
-                      onClick={() => exportHealingReport(script)}
-                      title="Download Audit Report"
+                      onClick={() => exportHealingReport(script, 'extent-pdf')}
+                      title="Open & Download ExtentReport.pdf with Embedded Screenshots"
                     >
-                      Report
+                      ExtentReport.pdf
                     </Button>
                     <Button
                       size="sm"
