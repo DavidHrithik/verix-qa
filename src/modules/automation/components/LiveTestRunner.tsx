@@ -22,6 +22,7 @@ import {
   HardDrive,
   FileSpreadsheet,
   RotateCcw,
+  Check,
 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
@@ -42,13 +43,18 @@ import { exportHealingReport } from '../services/reportExportService';
 interface LiveTestRunnerProps {
   script: AutomationScriptExtended;
   isRunning: boolean;
+  isBatchRunning?: boolean;
+  activeScenarioIdx?: number;
+  completedScenarioKeys?: string[];
   currentStepIndex: number;
   steps: SimulationStep[];
   logs: ExecutionLogItem[];
   runStatus: 'idle' | 'running' | 'passed' | 'failed' | 'healed';
   isHealedRun: boolean;
   activeFailure?: FailureScenario;
-  onStartExecution: (forceHealed?: boolean, customFailure?: FailureScenario) => void;
+  onStartExecution: (forceHealed?: boolean, customFailure?: FailureScenario, scenarioIdx?: number) => void;
+  onStartBatchSuite?: () => void;
+  onSelectScenario?: (idx: number) => void;
   onAbortExecution: () => void;
   onOpenSelfHealingDiff: () => void;
 }
@@ -56,6 +62,9 @@ interface LiveTestRunnerProps {
 export const LiveTestRunner: React.FC<LiveTestRunnerProps> = ({
   script,
   isRunning,
+  isBatchRunning = false,
+  activeScenarioIdx: controlledScenarioIdx,
+  completedScenarioKeys = [],
   currentStepIndex,
   steps,
   logs,
@@ -63,29 +72,32 @@ export const LiveTestRunner: React.FC<LiveTestRunnerProps> = ({
   isHealedRun,
   activeFailure,
   onStartExecution,
+  onStartBatchSuite,
+  onSelectScenario,
   onAbortExecution,
   onOpenSelfHealingDiff,
 }) => {
   const [viewMode, setViewMode] = useState<AutomationViewMode>('business_bdd');
   const [isTerminalExpanded, setIsTerminalExpanded] = useState<boolean>(false);
-  const [activeScenarioIdx, setActiveScenarioIdx] = useState<number>(0);
+  const [internalScenarioIdx, setInternalScenarioIdx] = useState<number>(0);
   const [simulateDrift, setSimulateDrift] = useState<boolean>(
     script.failureScenario !== undefined || script.status === 'Flaky' || script.lastRunStatus === 'Failed'
   );
   const terminalEndRef = useRef<HTMLDivElement>(null);
 
   const subScenarios = script.subScenarios || [];
-  const currentScenario = subScenarios[activeScenarioIdx];
+  const currentScenarioIdx = controlledScenarioIdx !== undefined ? controlledScenarioIdx : internalScenarioIdx;
+  const currentScenario = subScenarios[currentScenarioIdx];
   const activeTestCaseKey = currentScenario ? currentScenario.testCaseKey : script.testCaseKey;
 
-  // Active steps to display (current scenario's steps if selected)
-  const displaySteps = (currentScenario && runStatus === 'idle') ? currentScenario.steps : steps;
+  // Active steps to display
+  const displaySteps = steps.length > 0 ? steps : (currentScenario ? currentScenario.steps : script.steps);
 
   useEffect(() => {
     setSimulateDrift(
       script.failureScenario !== undefined || script.status === 'Flaky' || script.lastRunStatus === 'Failed'
     );
-    setActiveScenarioIdx(0);
+    setInternalScenarioIdx(0);
   }, [script.id]);
 
   useEffect(() => {
@@ -94,10 +106,16 @@ export const LiveTestRunner: React.FC<LiveTestRunnerProps> = ({
     }
   }, [logs, isTerminalExpanded]);
 
-  const handleTriggerRun = () => {
-    if (activeScenarioIdx !== 0 || !simulateDrift) {
+  const handleSelectScenario = (idx: number) => {
+    if (isRunning) return;
+    setInternalScenarioIdx(idx);
+    if (onSelectScenario) onSelectScenario(idx);
+  };
+
+  const handleTriggerSingleRun = () => {
+    if (currentScenarioIdx !== 0 || !simulateDrift) {
       // Clean pass for other scenarios or when drift is unchecked
-      onStartExecution(true, undefined);
+      onStartExecution(true, undefined, currentScenarioIdx);
     } else {
       // Run Scenario 1 with drift simulation
       const failure =
@@ -105,7 +123,7 @@ export const LiveTestRunner: React.FC<LiveTestRunnerProps> = ({
         (script.storyKey.includes('DBANK')
           ? mockFailureScenarios.mfa_button_drift
           : mockFailureScenarios.member_export_toggle_drift);
-      onStartExecution(false, failure);
+      onStartExecution(false, failure, currentScenarioIdx);
     }
   };
 
@@ -134,12 +152,15 @@ export const LiveTestRunner: React.FC<LiveTestRunnerProps> = ({
               Feature Scenarios ({subScenarios.length}):
             </span>
             {subScenarios.map((scen, idx) => {
-              const isSelected = idx === activeScenarioIdx;
+              const isSelected = idx === currentScenarioIdx;
+              const isCompleted = completedScenarioKeys.includes(scen.testCaseKey);
+              const isCurrentlyExecuting = isRunning && isSelected;
+
               return (
                 <button
                   key={scen.id}
                   disabled={isRunning}
-                  onClick={() => setActiveScenarioIdx(idx)}
+                  onClick={() => handleSelectScenario(idx)}
                   style={{
                     padding: '0.35rem 0.65rem',
                     borderRadius: 'var(--radius-md)',
@@ -147,15 +168,32 @@ export const LiveTestRunner: React.FC<LiveTestRunnerProps> = ({
                     fontWeight: 600,
                     cursor: isRunning ? 'not-allowed' : 'pointer',
                     border: '1px solid',
-                    backgroundColor: isSelected ? 'var(--accent-primary-light)' : 'var(--bg-surface-hover)',
-                    borderColor: isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)',
-                    color: isSelected ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                    backgroundColor: isSelected
+                      ? 'var(--accent-primary-light)'
+                      : isCompleted
+                      ? 'rgba(16, 185, 129, 0.08)'
+                      : 'var(--bg-surface-hover)',
+                    borderColor: isSelected
+                      ? 'var(--accent-primary)'
+                      : isCompleted
+                      ? 'var(--status-passed)'
+                      : 'var(--border-subtle)',
+                    color: isSelected
+                      ? 'var(--accent-primary)'
+                      : isCompleted
+                      ? 'var(--status-passed)'
+                      : 'var(--text-secondary)',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '4px',
                     transition: 'all var(--transition-fast)',
                   }}
                 >
+                  {isCompleted ? (
+                    <Check size={12} style={{ color: 'var(--status-passed)' }} />
+                  ) : isCurrentlyExecuting ? (
+                    <RotateCw size={12} className="animate-spin" style={{ color: 'var(--accent-primary)' }} />
+                  ) : null}
                   <span style={{ fontFamily: 'var(--font-mono)' }}>{scen.testCaseKey}</span>
                   <span>• {scen.vectorType}</span>
                 </button>
@@ -163,7 +201,11 @@ export const LiveTestRunner: React.FC<LiveTestRunnerProps> = ({
             })}
           </div>
 
-          <Badge variant="passed">{subScenarios.length} Scenarios Defined</Badge>
+          <Badge variant={completedScenarioKeys.length === subScenarios.length && completedScenarioKeys.length > 0 ? 'passed' : 'default'}>
+            {completedScenarioKeys.length > 0
+              ? `${completedScenarioKeys.length}/${subScenarios.length} Scenarios Passed`
+              : `${subScenarios.length} Scenarios Defined`}
+          </Badge>
         </div>
       )}
 
@@ -206,7 +248,7 @@ export const LiveTestRunner: React.FC<LiveTestRunnerProps> = ({
             </span>
 
             {/* In-Runner Simulate UI Drift Toggle (Only on Scenario 1) */}
-            {activeScenarioIdx === 0 && (
+            {currentScenarioIdx === 0 && !isBatchRunning && (
               <label
                 style={{
                   display: 'inline-flex',
@@ -251,9 +293,9 @@ export const LiveTestRunner: React.FC<LiveTestRunnerProps> = ({
                 variant="primary"
                 size="md"
                 leftIcon={<Play size={14} />}
-                onClick={handleTriggerRun}
+                onClick={handleTriggerSingleRun}
               >
-                {activeScenarioIdx === 0 && simulateDrift ? 'Run & Diagnose (AI Demo)' : `Run Scenario (${activeTestCaseKey})`}
+                {currentScenarioIdx === 0 && simulateDrift ? 'Run & Diagnose (AI Demo)' : `Run Scenario (${activeTestCaseKey})`}
               </Button>
 
               {subScenarios.length > 1 && (
@@ -262,8 +304,8 @@ export const LiveTestRunner: React.FC<LiveTestRunnerProps> = ({
                   size="md"
                   leftIcon={<Zap size={14} />}
                   onClick={() => {
-                    setActiveScenarioIdx(0);
-                    onStartExecution(true, undefined);
+                    if (onStartBatchSuite) onStartBatchSuite();
+                    else onStartExecution(true, undefined, 0);
                   }}
                   title="Execute all 5 scenarios sequentially"
                 >
@@ -318,10 +360,12 @@ export const LiveTestRunner: React.FC<LiveTestRunnerProps> = ({
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
             <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-primary)' }}>
-              Execution Progress ({passedCount} of {displaySteps.length} Steps)
+              {isBatchRunning
+                ? `Batch Suite Progress (Running Scenario ${currentScenarioIdx + 1}/${subScenarios.length}: ${activeTestCaseKey})`
+                : `Execution Progress (${passedCount} of ${displaySteps.length} Steps)`}
             </span>
             {runStatus === 'running' && (
-              <span className="badge badge-warning animate-pulse">Running</span>
+              <span className="badge badge-warning animate-pulse">Running {activeTestCaseKey}</span>
             )}
             {runStatus === 'passed' && (
               <span className="badge badge-passed">100% Passed</span>
@@ -425,6 +469,58 @@ export const LiveTestRunner: React.FC<LiveTestRunnerProps> = ({
               </div>
               <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginTop: '2px' }}>
                 The repaired locator has been verified against the target environment. The Page Object Model has been automatically patched in the repository.
+              </div>
+            </div>
+          </div>
+
+          <Button
+            variant="secondary"
+            size="sm"
+            leftIcon={<Download size={13} />}
+            onClick={() => exportHealingReport(script)}
+          >
+            Download Audit Report
+          </Button>
+        </div>
+      )}
+
+      {/* Suite Passed Scorecard Banner (When batch run completes) */}
+      {runStatus === 'passed' && completedScenarioKeys.length > 1 && (
+        <div
+          className="animate-fade-in"
+          style={{
+            padding: '1rem 1.25rem',
+            borderRadius: 'var(--radius-lg)',
+            backgroundColor: 'rgba(16, 185, 129, 0.08)',
+            border: '1px solid rgba(16, 185, 129, 0.3)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '0.875rem',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
+            <div
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                color: 'var(--status-passed)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <CheckCircle2 size={20} />
+            </div>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: 'var(--status-passed)' }}>
+                🏆 Entire Feature Suite Passed: {completedScenarioKeys.length}/{subScenarios.length} Scenarios Verified (100% Pass Rate)
+              </div>
+              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                Executed Happy Path, Security RBAC Gate, Boundary Stream, PII Masking, and Session Rollback with 0 errors.
               </div>
             </div>
           </div>

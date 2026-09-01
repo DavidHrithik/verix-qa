@@ -5,6 +5,7 @@ import {
   SimulationStep,
   SelfHealingProposal,
   FailureScenario,
+  BddScenario,
 } from '../types';
 import { initialAutomationScripts } from '../services/automationMockData';
 import {
@@ -24,13 +25,16 @@ export const useAutomationEngine = () => {
 
   // Runner state
   const [isRunning, setIsRunning] = useState<boolean>(false);
+  const [isBatchRunning, setIsBatchRunning] = useState<boolean>(false);
+  const [activeScenarioIdx, setActiveScenarioIdx] = useState<number>(0);
+  const [completedScenarioKeys, setCompletedScenarioKeys] = useState<string[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(-1);
   const [activeSteps, setActiveSteps] = useState<SimulationStep[]>([]);
   const [logs, setLogs] = useState<ExecutionLogItem[]>([]);
   const [runStatus, setRunStatus] = useState<'idle' | 'running' | 'passed' | 'failed' | 'healed'>('idle');
   const [activeFailure, setActiveFailure] = useState<FailureScenario | undefined>(undefined);
   const [isHealedRun, setIsHealedRun] = useState<boolean>(false);
-  const [executionSpeed, setExecutionSpeed] = useState<number>(1000); // ms per step
+  const [executionSpeed, setExecutionSpeed] = useState<number>(850); // ms per step
 
   // Self-Healing Proposal State
   const [healingProposal, setHealingProposal] = useState<SelfHealingProposal | null>(null);
@@ -42,8 +46,12 @@ export const useAutomationEngine = () => {
   // Initialize active steps when script changes
   useEffect(() => {
     if (activeScript) {
-      setActiveSteps(activeScript.steps.map((st) => ({ ...st, status: 'pending' })));
+      const sub = activeScript.subScenarios;
+      const initialStepList = (sub && sub.length > 0) ? sub[0].steps : activeScript.steps;
+      setActiveSteps(initialStepList.map((st) => ({ ...st, status: 'pending' })));
       setActiveFailure(activeScript.failureScenario);
+      setActiveScenarioIdx(0);
+      setCompletedScenarioKeys([]);
     }
   }, [activeScriptId]);
 
@@ -56,10 +64,14 @@ export const useAutomationEngine = () => {
 
   const selectScript = useCallback((script: AutomationScriptExtended, targetTab: AutomationTab = 'studio') => {
     setActiveScriptId(script.id);
-    setActiveSteps(script.steps.map((st) => ({ ...st, status: 'pending' })));
+    const sub = script.subScenarios;
+    const initialStepList = (sub && sub.length > 0) ? sub[0].steps : script.steps;
+    setActiveSteps(initialStepList.map((st) => ({ ...st, status: 'pending' })));
     setActiveFailure(script.failureScenario);
     setRunStatus('idle');
     setCurrentStepIndex(-1);
+    setActiveScenarioIdx(0);
+    setCompletedScenarioKeys([]);
     setLogs([]);
     setActiveTab(targetTab);
   }, []);
@@ -89,39 +101,47 @@ export const useAutomationEngine = () => {
     showToast('Scenario Deleted', 'Removed scenario from automation catalog', 'info');
   }, [activeScriptId, selectScript, showToast]);
 
-  // Start Execution
+  // Start Execution for a single scenario
   const startExecution = useCallback(
-    (scriptToRun?: AutomationScriptExtended, forceHealed: boolean = false, customFailure?: FailureScenario) => {
+    (scriptToRun?: AutomationScriptExtended, forceHealed: boolean = false, customFailure?: FailureScenario, scenarioIdx: number = 0) => {
       const script = scriptToRun || activeScript;
       if (!script) return;
 
       if (runnerTimeoutRef.current) clearTimeout(runnerTimeoutRef.current);
 
       setIsRunning(true);
+      setIsBatchRunning(false);
       setRunStatus('running');
       setIsHealedRun(forceHealed);
       setCurrentStepIndex(0);
+      setActiveScenarioIdx(scenarioIdx);
       setActiveTab('runner');
 
-      const failureToUse = forceHealed ? undefined : customFailure !== undefined ? customFailure : script.failureScenario;
+      const failureToUse = forceHealed ? undefined : customFailure !== undefined ? customFailure : (scenarioIdx === 0 ? script.failureScenario : undefined);
       setActiveFailure(failureToUse);
 
-      const initialSteps: SimulationStep[] = script.steps.map((st) => ({
+      const targetSub = script.subScenarios && script.subScenarios[scenarioIdx];
+      const stepSource = targetSub ? targetSub.steps : script.steps;
+
+      const initialSteps: SimulationStep[] = stepSource.map((st) => ({
         ...st,
         status: 'pending',
       }));
       setActiveSteps(initialSteps);
 
-      const initialLogs = createInitialExecutionLogs(script.name, script.framework);
+      const scenName = targetSub ? targetSub.title : script.name;
+      const initialLogs = createInitialExecutionLogs(scenName, script.framework);
       setLogs(initialLogs);
 
       // Recursive execution loop
       const runStep = (stepIdx: number, currentStepList: SimulationStep[], accumulatedLogs: ExecutionLogItem[]) => {
         if (stepIdx >= currentStepList.length) {
-          // All steps completed successfully!
+          // Scenario completed successfully!
           setIsRunning(false);
           const finalStatus = forceHealed ? 'healed' : 'passed';
           setRunStatus(finalStatus);
+          const targetKey = targetSub ? targetSub.testCaseKey : script.testCaseKey;
+          setCompletedScenarioKeys([targetKey]);
 
           // Update script metrics in catalog
           setScripts((prev) =>
@@ -146,13 +166,13 @@ export const useAutomationEngine = () => {
               id: `log-end-${Date.now()}`,
               timestamp: finishTs,
               level: 'success',
-              message: `[VERIX-RUNNER] 🎉 Suite execution COMPLETED with 0 errors. All ${currentStepList.length} assertions verified passed!`,
+              message: `[VERIX-RUNNER] 🎉 Scenario ${targetKey} PASSED with 0 errors. All ${currentStepList.length} assertions verified!`,
             },
           ]);
 
           showToast(
-            forceHealed ? 'Self-Healing Verified' : 'Suite Passed',
-            `Executed ${script.name} with 100% pass rate`,
+            forceHealed ? 'Self-Healing Verified' : 'Scenario Passed',
+            `Executed ${targetKey} with 100% pass rate`,
             'success'
           );
           return;
@@ -160,7 +180,6 @@ export const useAutomationEngine = () => {
 
         setCurrentStepIndex(stepIdx);
 
-        // Mark current step as running
         const runningSteps = currentStepList.map((st, i) =>
           i === stepIdx ? { ...st, status: 'running' as const } : st
         );
@@ -241,9 +260,153 @@ export const useAutomationEngine = () => {
     [activeScript, executionSpeed, showToast]
   );
 
+  // Start Batch Execution across ALL scenarios in feature
+  const startBatchSuiteExecution = useCallback(
+    (scriptToRun?: AutomationScriptExtended) => {
+      const script = scriptToRun || activeScript;
+      if (!script) return;
+
+      const subList = script.subScenarios && script.subScenarios.length > 0 ? script.subScenarios : [
+        {
+          id: 'scen-single',
+          testCaseKey: script.testCaseKey,
+          title: script.testCaseTitle,
+          vectorType: 'Functional / Happy Path',
+          steps: script.steps,
+        } as BddScenario
+      ];
+
+      if (runnerTimeoutRef.current) clearTimeout(runnerTimeoutRef.current);
+
+      setIsRunning(true);
+      setIsBatchRunning(true);
+      setRunStatus('running');
+      setIsHealedRun(false);
+      setActiveTab('runner');
+      setCompletedScenarioKeys([]);
+
+      const initialLogs = createInitialExecutionLogs(`Suite: ${script.name} (${subList.length} Scenarios)`, script.framework);
+      setLogs(initialLogs);
+
+      const runScenarioAt = (scenIdx: number, doneKeys: string[], currentLogs: ExecutionLogItem[]) => {
+        if (scenIdx >= subList.length) {
+          // ALL SCENARIOS COMPLETE!
+          setIsRunning(false);
+          setIsBatchRunning(false);
+          setRunStatus('passed');
+          setCompletedScenarioKeys(doneKeys);
+
+          const finishTs = new Date().toISOString().split('T')[1].slice(0, 12);
+          setLogs((prev) => [
+            ...prev,
+            {
+              id: `log-batch-end-${Date.now()}`,
+              timestamp: finishTs,
+              level: 'success',
+              message: `[VERIX-RUNNER] 🏆 SUITE COMPLETE: ${subList.length}/${subList.length} Scenarios Passed (100% Pass Rate, 0 Errors).`,
+            },
+          ]);
+
+          setScripts((prev) =>
+            prev.map((s) =>
+              s.id === script.id
+                ? {
+                    ...s,
+                    lastRunStatus: 'Passed',
+                    status: 'Active',
+                    executionCount: s.executionCount + 1,
+                    lastExecutedAt: new Date().toISOString(),
+                  }
+                : s
+            )
+          );
+
+          showToast('Suite Complete', `All ${subList.length} scenarios executed and verified passed!`, 'success');
+          return;
+        }
+
+        const scen = subList[scenIdx];
+        setActiveScenarioIdx(scenIdx);
+
+        const scenSteps: SimulationStep[] = scen.steps.map((st) => ({
+          ...st,
+          status: 'pending',
+        }));
+        setActiveSteps(scenSteps);
+
+        const scenStartTs = new Date().toISOString().split('T')[1].slice(0, 12);
+        const updatedLogs: ExecutionLogItem[] = [
+          ...currentLogs,
+          {
+            id: `log-scen-${scenIdx}-${Date.now()}`,
+            timestamp: scenStartTs,
+            level: 'info',
+            message: `[SUITE] ▶ Executing Scenario ${scenIdx + 1}/${subList.length}: ${scen.testCaseKey} (${scen.vectorType})`,
+          },
+        ];
+        setLogs(updatedLogs);
+
+        // Step by step runner inside scenario
+        const runScenStep = (stepIdx: number, activeStepList: SimulationStep[], scenAccumLogs: ExecutionLogItem[]) => {
+          if (stepIdx >= activeStepList.length) {
+            // This scenario finished!
+            const newDoneKeys = [...doneKeys, scen.testCaseKey];
+            setCompletedScenarioKeys(newDoneKeys);
+
+            const scenEndTs = new Date().toISOString().split('T')[1].slice(0, 12);
+            const afterScenLogs: ExecutionLogItem[] = [
+              ...scenAccumLogs,
+              {
+                id: `log-scen-done-${scenIdx}-${Date.now()}`,
+                timestamp: scenEndTs,
+                level: 'success',
+                message: `[SUITE] ✓ Scenario ${scen.testCaseKey} PASSED (${activeStepList.length} steps verified).`,
+              },
+            ];
+            setLogs(afterScenLogs);
+
+            // Pause slightly before starting next scenario
+            runnerTimeoutRef.current = setTimeout(() => {
+              runScenarioAt(scenIdx + 1, newDoneKeys, afterScenLogs);
+            }, 600);
+            return;
+          }
+
+          setCurrentStepIndex(stepIdx);
+
+          const runningSteps = activeStepList.map((st, i) =>
+            i === stepIdx ? { ...st, status: 'running' as const } : st
+          );
+          setActiveSteps(runningSteps);
+
+          const currentStep = runningSteps[stepIdx];
+
+          runnerTimeoutRef.current = setTimeout(() => {
+            const { logs: stepLogs } = generateStepLogs(currentStep, true, undefined);
+            const combinedLogs = [...scenAccumLogs, ...stepLogs];
+            setLogs(combinedLogs);
+
+            const passedSteps = runningSteps.map((st, i) =>
+              i === stepIdx ? { ...st, status: 'passed' as const } : st
+            );
+            setActiveSteps(passedSteps);
+
+            runScenStep(stepIdx + 1, passedSteps, combinedLogs);
+          }, 450); // fast batch step speed
+        };
+
+        runScenStep(0, scenSteps, updatedLogs);
+      };
+
+      runScenarioAt(0, [], initialLogs);
+    },
+    [activeScript, showToast]
+  );
+
   const abortExecution = useCallback(() => {
     if (runnerTimeoutRef.current) clearTimeout(runnerTimeoutRef.current);
     setIsRunning(false);
+    setIsBatchRunning(false);
     setRunStatus('idle');
     showToast('Execution Aborted', 'Test runner stopped by user', 'info');
   }, [showToast]);
@@ -258,44 +421,39 @@ export const useAutomationEngine = () => {
     // Apply patch to script in memory
     const updatedScript: AutomationScriptExtended = {
       ...targetScript,
-      code: healingProposal.healedCode,
-      status: 'Healed',
-      lastRunStatus: 'Running',
+      status: 'Active',
+      lastRunStatus: 'Passed',
       healedAt: new Date().toISOString(),
-      failureScenario: undefined, // Cleared failure
-      selfHealingLogs: [
-        ...(targetScript.selfHealingLogs || []),
-        {
-          healedAt: new Date().toISOString(),
-          oldSelector: healingProposal.failureScenario.brokenLocator,
-          newSelector: healingProposal.failureScenario.healedLocator,
-          confidence: healingProposal.confidence,
-        },
-      ],
-      steps: targetScript.steps.map((st, idx) =>
-        idx === healingProposal.failureScenario.failedStepIndex
-          ? { ...st, locator: healingProposal.failureScenario.healedLocator, status: 'healed' }
-          : st
-      ),
+      pageObjectClass: targetScript.healedPageObjectClass || targetScript.pageObjectClass,
+      code: healingProposal.healedCode,
+      healedCode: healingProposal.healedCode,
+      failureScenario: undefined,
+      steps: targetScript.steps.map((st) => ({
+        ...st,
+        status: 'passed',
+        healedLocator: st.healedLocator || (st.status === 'failed' ? healingProposal.failureScenario.healedLocator : undefined),
+      })),
     };
 
     setScripts((prev) => prev.map((s) => (s.id === updatedScript.id ? updatedScript : s)));
     setHealingProposal((prev) => (prev ? { ...prev, status: 'approved' } : null));
 
-    showToast('Healing Patch Approved', 'Patched script code in repository. Initiating verification re-run...', 'success');
+    showToast(
+      'Self-Healing Patch Applied',
+      `Patched Page Object selector with ${healingProposal.confidence}% confidence`,
+      'success'
+    );
 
-    // Automatically trigger verified re-run
+    // Re-run the script with verified healed state
     setTimeout(() => {
-      startExecution(updatedScript, true, undefined);
-    }, 600);
-  }, [healingProposal, scripts, activeScript, startExecution, showToast]);
+      startExecution(updatedScript, true, undefined, 0);
+    }, 400);
+  }, [healingProposal, scripts, activeScript, showToast, startExecution]);
 
-  // Reject Self-Healing Proposal
   const rejectSelfHealing = useCallback(() => {
-    if (!healingProposal) return;
     setHealingProposal((prev) => (prev ? { ...prev, status: 'rejected' } : null));
-    showToast('Proposal Discarded', 'No code changes applied to script', 'info');
-  }, [healingProposal, showToast]);
+    showToast('Proposal Rejected', 'Kept original Page Object selector without changes', 'info');
+  }, [showToast]);
 
   return {
     scripts,
@@ -303,22 +461,27 @@ export const useAutomationEngine = () => {
     activeScriptId,
     activeTab,
     isRunning,
+    isBatchRunning,
+    activeScenarioIdx,
+    completedScenarioKeys,
     currentStepIndex,
     activeSteps,
     logs,
     runStatus,
     activeFailure,
     isHealedRun,
-    executionSpeed,
     healingProposal,
+    executionSpeed,
+    setActiveTab,
+    setActiveScenarioIdx,
     setExecutionSpeed,
     selectScript,
     addScript,
     deleteScript,
     startExecution,
+    startBatchSuiteExecution,
     abortExecution,
     approveSelfHealing,
     rejectSelfHealing,
-    setActiveTab,
   };
 };

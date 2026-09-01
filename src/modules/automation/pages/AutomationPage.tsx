@@ -40,6 +40,9 @@ export const AutomationPage: React.FC = () => {
     activeScriptId,
     activeTab,
     isRunning,
+    isBatchRunning,
+    activeScenarioIdx,
+    completedScenarioKeys,
     currentStepIndex,
     activeSteps,
     logs,
@@ -51,10 +54,12 @@ export const AutomationPage: React.FC = () => {
     addScript,
     deleteScript,
     startExecution,
+    startBatchSuiteExecution,
     abortExecution,
     approveSelfHealing,
     rejectSelfHealing,
     setActiveTab,
+    setActiveScenarioIdx,
   } = useAutomationEngine();
 
   const handleScriptGenerated = (newScript: AutomationScriptExtended) => {
@@ -111,7 +116,7 @@ export const AutomationPage: React.FC = () => {
               leftIcon={<Play size={13} />}
               onClick={() => {
                 setActiveTab('runner');
-                startExecution(activeScript);
+                startBatchSuiteExecution(activeScript);
               }}
             >
               Run Active Suite
@@ -139,44 +144,36 @@ export const AutomationPage: React.FC = () => {
           alignItems: 'center',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
-          gap: '0.5rem',
-          fontSize: 'var(--text-xs)',
-          border: '1px solid var(--border-subtle)',
+          gap: '0.75rem',
+          borderLeft: '4px solid var(--accent-primary)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-          <span style={{ color: 'var(--accent-primary)' }}>End-to-End Workflow:</span>
-          <span>1. User Story</span>
-          <span style={{ color: 'var(--text-muted)' }}>➔</span>
-          <span>2. Synthesize Script</span>
-          <span style={{ color: 'var(--text-muted)' }}>➔</span>
-          <span>3. Run & Detect Drift</span>
-          <span style={{ color: 'var(--text-muted)' }}>➔</span>
-          <span>4. AI Root Cause & Diff</span>
-          <span style={{ color: 'var(--text-muted)' }}>➔</span>
-          <span style={{ color: 'var(--status-passed)' }}>5. Re-run & Verified Pass</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', fontSize: 'var(--text-xs)' }}>
+          <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>End-to-End Workflow:</span>
+          <span style={{ color: 'var(--text-secondary)' }}>
+            <strong>1. User Story</strong> ➔ <strong>2. Synthesize Script</strong> ➔ <strong>3. Run & Detect Drift</strong> ➔ <strong>4. AI Root Cause & Diff</strong> ➔ <strong>5. Re-run & Verified Pass</strong>
+          </span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <button
-            onClick={() => setIsSynthesizerOpen(true)}
-            className="btn btn-ghost"
-            style={{ fontSize: '11px', padding: '2px 6px', color: 'var(--accent-primary)' }}
-          >
-            Quick Synthesize
-          </button>
-        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsSynthesizerOpen(true)}
+          style={{ fontSize: 'var(--text-xs)', color: 'var(--accent-primary)' }}
+        >
+          Quick Synthesize
+        </Button>
       </div>
 
       {/* Top Telemetry KPI Bar */}
       <AutomationStatsBar scripts={scripts} />
 
-      {/* Main Tabs Navigation */}
+      {/* Primary Tab Navigation */}
       <div style={{ marginBottom: '1.25rem' }}>
         <Tabs
           tabs={tabs}
           activeTab={activeTab}
-          onChange={(tabId) => setActiveTab(tabId as AutomationTab)}
+          onChange={(tabId) => setActiveTab(tabId as any)}
         />
       </div>
 
@@ -189,7 +186,7 @@ export const AutomationPage: React.FC = () => {
           onOpenSynthesizer={() => setIsSynthesizerOpen(true)}
           onExecuteScript={(script) => {
             setActiveTab('runner');
-            startExecution(script);
+            startBatchSuiteExecution(script);
           }}
           onDeleteScript={deleteScript}
         />
@@ -199,13 +196,18 @@ export const AutomationPage: React.FC = () => {
         <LiveTestRunner
           script={activeScript}
           isRunning={isRunning}
+          isBatchRunning={isBatchRunning}
+          activeScenarioIdx={activeScenarioIdx}
+          completedScenarioKeys={completedScenarioKeys}
           currentStepIndex={currentStepIndex}
           steps={activeSteps}
           logs={logs}
           runStatus={runStatus}
           isHealedRun={isHealedRun}
           activeFailure={activeFailure}
-          onStartExecution={(forceHealed) => startExecution(activeScript, forceHealed)}
+          onStartExecution={(forceHealed, customFailure, scenarioIdx) => startExecution(activeScript, forceHealed, customFailure, scenarioIdx)}
+          onStartBatchSuite={() => startBatchSuiteExecution(activeScript)}
+          onSelectScenario={(idx) => setActiveScenarioIdx(idx)}
           onAbortExecution={abortExecution}
           onOpenSelfHealingDiff={() => setActiveTab('healing-diff')}
         />
