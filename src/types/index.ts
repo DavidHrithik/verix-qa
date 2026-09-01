@@ -9,6 +9,14 @@
 // 1. Projects & Users
 // ==========================================
 
+export interface ProjectMember {
+  id: string;
+  name: string;
+  email?: string;
+  role: string;
+  avatarInitials: string;
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -16,6 +24,7 @@ export interface Project {
   description: string;
   activeSprint?: string;
   membersCount: number;
+  members?: ProjectMember[];
   totalStories: number;
   totalTestCases: number;
   healthScore: number; // 0 - 100
