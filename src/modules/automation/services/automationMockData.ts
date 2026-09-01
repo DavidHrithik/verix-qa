@@ -76,6 +76,47 @@ export const mockFailureScenarios: Record<string, FailureScenario> = {
     ],
     domSnapshotBefore: `<button id="btn-mfa-submit" class="btn btn-primary">Submit Code</button>`,
     domSnapshotAfter: `<button data-testid="mfa-auth-submit" class="btn-verix-primary" role="button" aria-label="Verify & Confirm Transfer">Verify & Confirm Transfer</button>`,
+  },
+  auth_register_button_drift: {
+    id: 'scen-auth-register-drift',
+    type: 'locator_drift',
+    title: 'Registration Submit Button Locator Drift in Auth Portal',
+    description: 'In Auth Portal Release v2.5, the submit button ID `#btn-register-submit` was updated to `button[data-testid="register-submit"]`.',
+    failedStepIndex: 1,
+    brokenLocator: `page.locator('button#btn-register-submit')`,
+    healedLocator: `page.locator('button[data-testid="register-submit"]')`,
+    failureMessage: `Error: locator.click: Target closed\nwaiting for locator('button#btn-register-submit')\nlocator resolved to 0 elements (timeout 5000ms exceeded) during Step: 'When user submits valid name, business email, and matching password'`,
+    plainEnglishExplanation: `The registration form submit button ID was replaced with an accessible data-testid attribute in the Auth v2.5 release.`,
+    rootCauseAnalysis: `DOM Mutation in Auth Service (v2.5.0). The legacy form submit element with ID 'btn-register-submit' was replaced with 'button[data-testid="register-submit"]'.`,
+    candidates: [
+      {
+        selector: `page.locator('button[data-testid="register-submit"]')`,
+        strategy: 'data-testid',
+        confidence: 99,
+        isRecommended: true,
+        rationale: 'Exact data-testid match on primary registration submission button.',
+      },
+      {
+        selector: `page.getByRole('button', { name: 'Create Verix Account' })`,
+        strategy: 'aria-role',
+        confidence: 92,
+        isRecommended: false,
+        rationale: 'Semantic ARIA role and button text label match.',
+      },
+      {
+        selector: `page.locator('form.register-form >> button[type="submit"]')`,
+        strategy: 'css-path',
+        confidence: 84,
+        isRecommended: false,
+        rationale: 'CSS form descendant match; resilient to ID changes.',
+      },
+    ],
+    domSnapshotBefore: `<form class="register-form">
+  <button id="btn-register-submit" type="submit" class="btn btn-primary">Create Verix Account</button>
+</form>`,
+    domSnapshotAfter: `<form class="register-form" data-testid="registration-form">
+  <button data-testid="register-submit" type="submit" class="btn-verix-primary" role="button">Create Verix Account</button>
+</form>`,
   }
 };
 

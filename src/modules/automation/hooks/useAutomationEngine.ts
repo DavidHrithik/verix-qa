@@ -535,11 +535,21 @@ export const useAutomationEngine = () => {
   // ⚡ Inject UI Drift (Break Locator for Live Demo)
   const injectDrift = useCallback((scriptId?: string) => {
     const targetId = scriptId || activeScriptId;
-    const failure = mockFailureScenarios.member_export_toggle_drift;
+    const targetScript = scripts.find((s) => s.id === targetId) || activeScript;
+
+    // Pick tailored failure scenario based on target script
+    const failure =
+      targetScript.storyKey === 'AUTH-101' || targetScript.name.includes('AUTH')
+        ? mockFailureScenarios.auth_register_button_drift
+        : targetScript.storyKey.includes('DBANK') || targetScript.name.includes('DBANK')
+        ? mockFailureScenarios.mfa_button_drift
+        : mockFailureScenarios.member_export_toggle_drift;
+
+    const failedStepIdx = failure.failedStepIndex !== undefined ? failure.failedStepIndex : 2;
 
     setScripts((prev) =>
       prev.map((s) => {
-        if (s.id === targetId || s.storyKey === 'CLOUD-204') {
+        if (s.id === targetId) {
           return {
             ...s,
             status: 'Flaky',
@@ -548,7 +558,7 @@ export const useAutomationEngine = () => {
             healedAt: undefined,
             steps: s.steps.map((st, idx) => ({
               ...st,
-              status: idx === 2 ? 'failed' : 'pending',
+              status: idx === failedStepIdx ? 'failed' : 'pending',
             })),
           };
         }
@@ -565,11 +575,11 @@ export const useAutomationEngine = () => {
     setHealingProposal(null);
 
     showToast(
-      '⚡ UI Drift Injected',
-      'Locator By.id("toggle-export-data") is now armed to fail at Step 3. Click "Run Scenario" to demonstrate AI Self-Healing.',
+      '⚡ UI Drift Injected for ' + targetScript.storyKey,
+      `Armed locator drift on Step ${failedStepIdx + 1}. Click "Run Scenario" to demonstrate AI Self-Healing.`,
       'info'
     );
-  }, [activeScriptId, showToast]);
+  }, [activeScriptId, activeScript, scripts, showToast]);
 
   // 🔄 Reset Demo Baseline (Restore Clean State)
   const resetDemo = useCallback(() => {
@@ -592,11 +602,11 @@ export const useAutomationEngine = () => {
   // 🎛️ Manually Change Locator in Code Studio
   const setCustomLocator = useCallback((locatorType: 'broken_id' | 'healed_testid' | 'custom_role') => {
     if (locatorType === 'broken_id') {
-      injectDrift();
+      injectDrift(activeScriptId);
     } else {
       setScripts((prev) =>
         prev.map((s) => {
-          if (s.id === activeScriptId || s.storyKey === 'CLOUD-204') {
+          if (s.id === activeScriptId) {
             return {
               ...s,
               status: 'Active',
