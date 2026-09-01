@@ -240,20 +240,37 @@ export const LiveTestRunner: React.FC<LiveTestRunnerProps> = ({
         </div>
 
         {/* Action Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', flexWrap: 'wrap' }}>
           {isRunning ? (
             <Button variant="danger" size="md" leftIcon={<Square size={14} />} onClick={onAbortExecution}>
               Stop Execution
             </Button>
           ) : (
-            <Button
-              variant="primary"
-              size="md"
-              leftIcon={<Play size={14} />}
-              onClick={handleTriggerRun}
-            >
-              {activeScenarioIdx === 0 && simulateDrift ? 'Run & Diagnose (AI Demo)' : `Run Scenario (${activeTestCaseKey})`}
-            </Button>
+            <>
+              <Button
+                variant="primary"
+                size="md"
+                leftIcon={<Play size={14} />}
+                onClick={handleTriggerRun}
+              >
+                {activeScenarioIdx === 0 && simulateDrift ? 'Run & Diagnose (AI Demo)' : `Run Scenario (${activeTestCaseKey})`}
+              </Button>
+
+              {subScenarios.length > 1 && (
+                <Button
+                  variant="ai"
+                  size="md"
+                  leftIcon={<Zap size={14} />}
+                  onClick={() => {
+                    setActiveScenarioIdx(0);
+                    onStartExecution(true, undefined);
+                  }}
+                  title="Execute all 5 scenarios sequentially"
+                >
+                  Run Entire Suite (5 Scenarios)
+                </Button>
+              )}
+            </>
           )}
 
           {/* View Mode Toggle: BDD vs SDET */}

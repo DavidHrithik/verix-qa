@@ -100,13 +100,13 @@ export const initialAutomationScripts: AutomationScriptExtended[] = [
     executionCount: 12,
     lastExecutionDuration: 4.6,
     failureScenario: mockFailureScenarios.member_export_toggle_drift,
-    gherkinContent: `@CLOUD204 @admin @cloud @privacy @security @compliance @run
+    gherkinContent: `@CLOUD204 @cloud @governance @security @compliance @run
 Feature: CLOUD-204 - Workspace Admin Data Export & PII Masking Governance Policy
 
-  @CLOUD204_export_policy
-  Scenario Outline: <Testcase> - Organization Admin configures data export and privacy policy toggles for Team Member
-    Given that the "<adminUserRole>" is logged in to Cloud Admin Console and launch Policy Utility Application through chrome "<adminUser>"
-    When user selects member "<targetMember>" from the select team member dropdown
+  @TC201 @HappyPath @AI_Healing_Demo
+  Scenario: TC-201 - Organization Admin configures data export and privacy policy toggles for Team Member
+    Given that CloudAdmin is logged in to Cloud Admin Console and launch Policy Utility Application
+    When user selects member "Sarah Jenkins (Data Analyst)" from the select team member dropdown
     Then the toggle for "Enable member to export data to local storage" should be "ON"
     And the toggle for "Enable cloud backup synchronization" should be "ON"
     And the toggle for "Enable audit logging for sensitive assets" should be "ON"
@@ -114,10 +114,32 @@ Feature: CLOUD-204 - Workspace Admin Data Export & PII Masking Governance Policy
     Then the "View/Edit Member Permissions" page should be displayed
     Then the user is logged out of the application
 
-  @qa3
-  Examples:
-    | Testcase | adminUserRole | adminUser | targetMemberRole | targetMember |
-    | TC_201   | CloudAdmin    | adminUser | DataAnalystRole  | analystUser  |`,
+  @TC202 @Security @NegativeGate
+  Scenario: TC-202 - Non-admin member receives 403 Forbidden Access Denied gate
+    Given Member user "Devin Chen" with non-admin permissions logs in to member portal
+    When member triggers direct POST to "/api/v1/workspace/export-data"
+    Then server rejects request with HTTP 403 Forbidden
+    And UI renders zero-trust security denied alert banner
+
+  @TC203 @Boundary @Performance
+  Scenario: TC-203 - High-volume telemetry dataset exceeding 50MB streams in background chunks
+    Given workspace contains 500,000 telemetry audit records totaling 75MB
+    When admin triggers full organizational export
+    Then system streams asynchronous background job in chunks without memory leak
+    And download progress reaches 100% with verified file checksum
+
+  @TC204 @EdgeCase @PII_Governance
+  Scenario: TC-204 - PII masking engine retains SHA-256 mask pattern on unicode & special characters
+    Given user records contain non-standard ASCII and special unicode characters in PII fields
+    When PII masking engine executes export sanitization
+    Then sensitive fields are masked with consistent 64-character SHA-256 hex hashes
+    And compliance scanner verifies 0% unmasked PII leak in output CSV
+
+  @TC205 @Resilience @FaultTolerance
+  Scenario: TC-205 - Network interrupt during active export triggers safe state rollback
+    Given active background data export is in progress at 45% completion
+    When simulated network disconnect invalidates WebSocket session
+    Then temporary staging tables are purged and system returns to clean idle state`,
     pageObjectClass: `// Page Object Model: MemberPermissionsPage.java
 package pages;
 
@@ -131,12 +153,16 @@ public class MemberPermissionsPage {
   // ⚠️ BROKEN SELECTOR: ID deprecated in Cloud v3.4 release
   private By exportToggle = By.id("toggle-export-data");
   private By memberDropdown = By.id("select-member-dropdown");
-  private By saveSettingsBtn = By.cssSelector("[data-testid='save-settings']");
+  private By securityDeniedAlert = By.cssSelector("[data-testid='security-denied-alert']");
+  private By heavyExportBtn = By.id("btn-start-heavy-export");
+  private By chunkProgressBar = By.cssSelector("[data-testid='chunk-stream-progress']");
+  private By piiMaskedTable = By.cssSelector("[data-testid='pii-masked-table']");
 
   public MemberPermissionsPage(WebDriver driver) {
     this.driver = driver;
   }
 
+  // --- Scenario 1: Admin Policy Toggles (TC-201) ---
   public void selectMember(String memberName) {
     driver.findElement(memberDropdown).sendKeys(memberName);
   }
@@ -148,6 +174,25 @@ public class MemberPermissionsPage {
 
   public void toggleExportData() {
     driver.findElement(exportToggle).click();
+  }
+
+  // --- Scenario 2: Security Gate 403 RBAC (TC-202) ---
+  public boolean isSecurityBannerDisplayed() {
+    return driver.findElement(securityDeniedAlert).isDisplayed();
+  }
+
+  // --- Scenario 3: Boundary Streaming (TC-203) ---
+  public void triggerHeavyExport() {
+    driver.findElement(heavyExportBtn).click();
+  }
+
+  public boolean isStreamComplete() {
+    return driver.findElement(chunkProgressBar).isDisplayed();
+  }
+
+  // --- Scenario 4: PII Governance (TC-204) ---
+  public boolean verifyPiiMasked() {
+    return driver.findElement(piiMaskedTable).getText().contains("9f86d081884c");
   }
 }`,
     healedPageObjectClass: `// Page Object Model: MemberPermissionsPage.java (AI Repaired)
@@ -163,12 +208,16 @@ public class MemberPermissionsPage {
   // ✨ HEALED SELECTOR: Repaired with 98% AI Confidence
   private By exportToggle = By.cssSelector("[data-testid='member-export-toggle']");
   private By memberDropdown = By.id("select-member-dropdown");
-  private By saveSettingsBtn = By.cssSelector("[data-testid='save-settings']");
+  private By securityDeniedAlert = By.cssSelector("[data-testid='security-denied-alert']");
+  private By heavyExportBtn = By.id("btn-start-heavy-export");
+  private By chunkProgressBar = By.cssSelector("[data-testid='chunk-stream-progress']");
+  private By piiMaskedTable = By.cssSelector("[data-testid='pii-masked-table']");
 
   public MemberPermissionsPage(WebDriver driver) {
     this.driver = driver;
   }
 
+  // --- Scenario 1: Admin Policy Toggles (TC-201) ---
   public void selectMember(String memberName) {
     driver.findElement(memberDropdown).sendKeys(memberName);
   }
@@ -180,6 +229,25 @@ public class MemberPermissionsPage {
 
   public void toggleExportData() {
     driver.findElement(exportToggle).click();
+  }
+
+  // --- Scenario 2: Security Gate 403 RBAC (TC-202) ---
+  public boolean isSecurityBannerDisplayed() {
+    return driver.findElement(securityDeniedAlert).isDisplayed();
+  }
+
+  // --- Scenario 3: Boundary Streaming (TC-203) ---
+  public void triggerHeavyExport() {
+    driver.findElement(heavyExportBtn).click();
+  }
+
+  public boolean isStreamComplete() {
+    return driver.findElement(chunkProgressBar).isDisplayed();
+  }
+
+  // --- Scenario 4: PII Governance (TC-204) ---
+  public boolean verifyPiiMasked() {
+    return driver.findElement(piiMaskedTable).getText().contains("9f86d081884c");
   }
 }`,
     steps: [
@@ -473,13 +541,13 @@ public class MemberPermissionsPage {
         ]
       }
     ],
-    code: `@CLOUD204 @admin @cloud @privacy @security @compliance @run
+    code: `@CLOUD204 @cloud @governance @security @compliance @run
 Feature: CLOUD-204 - Workspace Admin Data Export & PII Masking Governance Policy
 
-  @CLOUD204_export_policy
-  Scenario Outline: <Testcase> - Organization Admin configures data export and privacy policy toggles for Team Member
-    Given that the "<adminUserRole>" is logged in to Cloud Admin Console and launch Policy Utility Application through chrome "<adminUser>"
-    When user selects member "<targetMember>" from the select team member dropdown
+  @TC201 @HappyPath @AI_Healing_Demo
+  Scenario: TC-201 - Organization Admin configures data export and privacy policy toggles for Team Member
+    Given that CloudAdmin is logged in to Cloud Admin Console and launch Policy Utility Application
+    When user selects member "Sarah Jenkins (Data Analyst)" from the select team member dropdown
     Then the toggle for "Enable member to export data to local storage" should be "ON"
     And the toggle for "Enable cloud backup synchronization" should be "ON"
     And the toggle for "Enable audit logging for sensitive assets" should be "ON"
@@ -487,10 +555,32 @@ Feature: CLOUD-204 - Workspace Admin Data Export & PII Masking Governance Policy
     Then the "View/Edit Member Permissions" page should be displayed
     Then the user is logged out of the application
 
-  @qa3
-  Examples:
-    | Testcase | adminUserRole | adminUser | targetMemberRole | targetMember |
-    | TC_201   | CloudAdmin    | adminUser | DataAnalystRole  | analystUser  |`,
+  @TC202 @Security @NegativeGate
+  Scenario: TC-202 - Non-admin member receives 403 Forbidden Access Denied gate
+    Given Member user "Devin Chen" with non-admin permissions logs in to member portal
+    When member triggers direct POST to "/api/v1/workspace/export-data"
+    Then server rejects request with HTTP 403 Forbidden
+    And UI renders zero-trust security denied alert banner
+
+  @TC203 @Boundary @Performance
+  Scenario: TC-203 - High-volume telemetry dataset exceeding 50MB streams in background chunks
+    Given workspace contains 500,000 telemetry audit records totaling 75MB
+    When admin triggers full organizational export
+    Then system streams asynchronous background job in chunks without memory leak
+    And download progress reaches 100% with verified file checksum
+
+  @TC204 @EdgeCase @PII_Governance
+  Scenario: TC-204 - PII masking engine retains SHA-256 mask pattern on unicode & special characters
+    Given user records contain non-standard ASCII and special unicode characters in PII fields
+    When PII masking engine executes export sanitization
+    Then sensitive fields are masked with consistent 64-character SHA-256 hex hashes
+    And compliance scanner verifies 0% unmasked PII leak in output CSV
+
+  @TC205 @Resilience @FaultTolerance
+  Scenario: TC-205 - Network interrupt during active export triggers safe state rollback
+    Given active background data export is in progress at 45% completion
+    When simulated network disconnect invalidates WebSocket session
+    Then temporary staging tables are purged and system returns to clean idle state`,
     originalCode: `driver.findElement(By.id("toggle-export-data")).click();`,
     healedCode: `driver.findElement(By.cssSelector("[data-testid='member-export-toggle']")).click();`
   },
