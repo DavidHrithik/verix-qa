@@ -64,11 +64,30 @@ export const useAutomationEngine = () => {
     setActiveTab(targetTab);
   }, []);
 
-  const addScript = useCallback((newScript: AutomationScriptExtended) => {
-    setScripts((prev) => [newScript, ...prev]);
+  const addScript = useCallback((newScript: AutomationScriptExtended, overwriteExisting: boolean = true) => {
+    setScripts((prev) => {
+      const existingIdx = prev.findIndex((s) => s.storyKey === newScript.storyKey || s.name === newScript.name);
+      if (overwriteExisting && existingIdx !== -1) {
+        const updated = [...prev];
+        updated[existingIdx] = newScript;
+        return updated;
+      }
+      return [newScript, ...prev];
+    });
     selectScript(newScript, 'studio');
-    showToast('Script Created', `Saved ${newScript.name} to automation repository`, 'success');
+    showToast('Script Ready', `Configured ${newScript.name} in automation catalog`, 'success');
   }, [selectScript, showToast]);
+
+  const deleteScript = useCallback((scriptId: string) => {
+    setScripts((prev) => {
+      const remaining = prev.filter((s) => s.id !== scriptId);
+      if (activeScriptId === scriptId && remaining.length > 0) {
+        selectScript(remaining[0], 'catalog');
+      }
+      return remaining;
+    });
+    showToast('Scenario Deleted', 'Removed scenario from automation catalog', 'info');
+  }, [activeScriptId, selectScript, showToast]);
 
   // Start Execution
   const startExecution = useCallback(
@@ -295,6 +314,7 @@ export const useAutomationEngine = () => {
     setExecutionSpeed,
     selectScript,
     addScript,
+    deleteScript,
     startExecution,
     abortExecution,
     approveSelfHealing,

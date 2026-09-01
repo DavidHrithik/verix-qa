@@ -13,6 +13,7 @@ import {
   Terminal,
   FileText,
   Download,
+  Trash2,
 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
@@ -26,6 +27,7 @@ interface ScriptCatalogProps {
   onSelectScript: (script: AutomationScriptExtended, targetTab?: 'studio' | 'runner' | 'healing-diff') => void;
   onOpenSynthesizer: () => void;
   onExecuteScript: (script: AutomationScriptExtended) => void;
+  onDeleteScript?: (scriptId: string) => void;
 }
 
 export const ScriptCatalog: React.FC<ScriptCatalogProps> = ({
@@ -34,6 +36,7 @@ export const ScriptCatalog: React.FC<ScriptCatalogProps> = ({
   onSelectScript,
   onOpenSynthesizer,
   onExecuteScript,
+  onDeleteScript,
 }) => {
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
@@ -132,21 +135,22 @@ export const ScriptCatalog: React.FC<ScriptCatalogProps> = ({
           filteredScripts.map((script) => {
             const isSelected = script.id === activeScriptId;
             const isHealed = script.status === 'Healed' || (script.selfHealingLogs && script.selfHealingLogs.length > 0);
-            const isFailed = script.lastRunStatus === 'Failed';
 
             return (
               <div
                 key={script.id}
+                onClick={() => onSelectScript(script, 'studio')}
                 style={{
                   padding: '1.1rem 1.25rem',
                   borderRadius: 'var(--radius-lg)',
                   backgroundColor: isSelected ? 'var(--bg-surface-active)' : 'var(--bg-surface)',
-                  border: `1px solid ${isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)'}`,
-                  boxShadow: isSelected ? '0 0 0 1px var(--accent-primary)' : 'var(--shadow-sm)',
+                  border: '1px solid var(--border-subtle)',
+                  borderLeft: isSelected ? '4px solid var(--accent-primary)' : '4px solid transparent',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   gap: '1rem',
+                  cursor: 'pointer',
                   transition: 'all var(--transition-fast)',
                 }}
               >
@@ -170,6 +174,12 @@ export const ScriptCatalog: React.FC<ScriptCatalogProps> = ({
                     <span className="badge badge-default" style={{ fontSize: '10px' }}>
                       {script.folderCategory || 'Feature Suite'}
                     </span>
+
+                    {isSelected && (
+                      <span className="badge badge-primary" style={{ fontSize: '9px', padding: '1px 5px' }}>
+                        Selected
+                      </span>
+                    )}
 
                     {isHealed && (
                       <span className="badge badge-ai" style={{ fontSize: '10px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
@@ -200,7 +210,10 @@ export const ScriptCatalog: React.FC<ScriptCatalogProps> = ({
                 </div>
 
                 {/* Status Telemetry */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexShrink: 0 }}>
+                <div
+                  style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexShrink: 0 }}
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ marginBottom: '2px' }}>
                       {script.lastRunStatus === 'Passed' ? (
@@ -217,7 +230,7 @@ export const ScriptCatalog: React.FC<ScriptCatalogProps> = ({
                   </div>
 
                   {/* Actions */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                     <Button
                       size="sm"
                       variant="secondary"
@@ -246,6 +259,43 @@ export const ScriptCatalog: React.FC<ScriptCatalogProps> = ({
                     >
                       Run Scenario
                     </Button>
+
+                    {/* Delete Script Button */}
+                    {onDeleteScript && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (window.confirm(`Delete scenario "${script.name}" from catalog?`)) {
+                            onDeleteScript(script.id);
+                          }
+                        }}
+                        style={{
+                          background: 'none',
+                          border: '1px solid var(--border-subtle)',
+                          borderRadius: 'var(--radius-sm)',
+                          padding: '0.35rem 0.5rem',
+                          color: 'var(--text-muted)',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'all var(--transition-fast)',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = 'var(--status-failed)';
+                          e.currentTarget.style.borderColor = 'var(--status-failed)';
+                          e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = 'var(--text-muted)';
+                          e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                        }}
+                        title="Delete Scenario from Catalog"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

@@ -49,6 +49,7 @@ export const AutomationPage: React.FC = () => {
     healingProposal,
     selectScript,
     addScript,
+    deleteScript,
     startExecution,
     abortExecution,
     approveSelfHealing,
@@ -190,6 +191,7 @@ export const AutomationPage: React.FC = () => {
             setActiveTab('runner');
             startExecution(script);
           }}
+          onDeleteScript={deleteScript}
         />
       )}
 
