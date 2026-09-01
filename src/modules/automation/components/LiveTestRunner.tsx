@@ -166,7 +166,10 @@ export const LiveTestRunner: React.FC<LiveTestRunnerProps> = ({
             size="sm"
             leftIcon={<Zap size={13} style={{ color: 'var(--status-warning)' }} />}
             disabled={isRunning}
-            onClick={onInjectDrift}
+            onClick={() => {
+              setSimulateDrift(true);
+              if (onInjectDrift) onInjectDrift();
+            }}
             title="Break locator to demonstrate AI failure catch & auto-repair"
           >
             ⚡ Inject UI Drift (Break Locator)
@@ -177,7 +180,10 @@ export const LiveTestRunner: React.FC<LiveTestRunnerProps> = ({
             size="sm"
             leftIcon={<RotateCw size={13} />}
             disabled={isRunning}
-            onClick={onResetDemo}
+            onClick={() => {
+              setSimulateDrift(false);
+              if (onResetDemo) onResetDemo();
+            }}
             title="Reset scenario back to clean baseline"
           >
             🔄 Reset Demo Scenario

@@ -346,6 +346,9 @@ export const useAutomationEngine = () => {
         ];
         setLogs(updatedLogs);
 
+        const isFirstScenario = scenIdx === 0;
+        const scenFailure = isFirstScenario ? (activeFailure || script.failureScenario) : undefined;
+
         // Step by step runner inside scenario
         const runScenStep = (stepIdx: number, activeStepList: SimulationStep[], scenAccumLogs: ExecutionLogItem[]) => {
           if (stepIdx >= activeStepList.length) {
@@ -382,9 +385,63 @@ export const useAutomationEngine = () => {
           const currentStep = runningSteps[stepIdx];
 
           runnerTimeoutRef.current = setTimeout(() => {
-            const { logs: stepLogs } = generateStepLogs(currentStep, true, undefined);
+            const { logs: stepLogs, passed } = generateStepLogs(currentStep, !scenFailure, scenFailure);
             const combinedLogs = [...scenAccumLogs, ...stepLogs];
             setLogs(combinedLogs);
+
+            if (!passed) {
+              // Drift caught during batch execution!
+              const failedSteps = runningSteps.map((st, i) =>
+                i === stepIdx ? { ...st, status: 'failed' as const } : st
+              );
+              setActiveSteps(failedSteps);
+              setIsRunning(false);
+              setIsBatchRunning(false);
+              setRunStatus('failed');
+
+              // Update script status in catalog
+              setScripts((prev) =>
+                prev.map((s) =>
+                  s.id === script.id
+                    ? {
+                        ...s,
+                        lastRunStatus: 'Failed',
+                        status: 'Flaky',
+                        executionCount: s.executionCount + 1,
+                        lastExecutedAt: new Date().toISOString(),
+                      }
+                    : s
+                )
+              );
+
+              // Construct Self-Healing Proposal automatically
+              if (scenFailure) {
+                const proposal: SelfHealingProposal = {
+                  id: `heal-prop-${Date.now()}`,
+                  scriptId: script.id,
+                  scriptName: script.name,
+                  testCaseKey: script.testCaseKey,
+                  storyKey: script.storyKey,
+                  featureTitle: script.featureTitle || script.storyTitle,
+                  failureScenario: scenFailure,
+                  brokenCode: script.originalCode || script.code,
+                  healedCode: script.healedCode || script.code.replace(scenFailure.brokenLocator, scenFailure.healedLocator),
+                  confidence: scenFailure.candidates[0]?.confidence || 98,
+                  plainEnglishSummary: scenFailure.plainEnglishExplanation,
+                  aiExplanation: scenFailure.rootCauseAnalysis,
+                  status: 'pending',
+                  timestamp: new Date().toISOString(),
+                };
+                setHealingProposal(proposal);
+              }
+
+              showToast(
+                'Test Failed at Step ' + (stepIdx + 1),
+                `Selector drift detected on ${currentStep.title}. AI Root Cause Analysis ready.`,
+                'error'
+              );
+              return;
+            }
 
             const passedSteps = runningSteps.map((st, i) =>
               i === stepIdx ? { ...st, status: 'passed' as const } : st
@@ -392,7 +449,7 @@ export const useAutomationEngine = () => {
             setActiveSteps(passedSteps);
 
             runScenStep(stepIdx + 1, passedSteps, combinedLogs);
-          }, 450); // fast batch step speed
+          }, 650);
         };
 
         runScenStep(0, scenSteps, updatedLogs);
