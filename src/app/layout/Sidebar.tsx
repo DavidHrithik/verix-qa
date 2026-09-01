@@ -16,6 +16,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { useProject } from '../../app/providers/ProjectProvider';
+import { mockStories, mockTestCases, mockTasks } from '../../mock';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -30,17 +31,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isMobileOpen,
   onCloseMobile,
 }) => {
-  const { projects } = useProject();
+  const { projects, activeProject } = useProject();
+
+  const activeStoriesCount = mockStories.filter(s => s.projectId === activeProject.id).length;
+  const activeTestCasesCount = mockTestCases.filter(t => t.projectId === activeProject.id).length;
+  const activeTasksCount = mockTasks.filter(t => t.projectId === activeProject.id).length;
 
   const navItems = [
     { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { label: 'Projects', path: '/projects', icon: FolderKanban, badge: String(projects.length) },
-    { label: 'User Stories', path: '/user-stories', icon: Layers, badge: '42' },
+    { label: 'User Stories', path: '/user-stories', icon: Layers, badge: String(activeStoriesCount) },
     { label: 'Coverage Bridge', path: '/coverage', icon: ShieldCheck },
-    { label: 'Test Cases', path: '/test-cases', icon: FileCode2, badge: '198' },
+    { label: 'Test Cases', path: '/test-cases', icon: FileCode2, badge: String(activeTestCasesCount) },
     { label: 'Test Step AI', path: '/test-steps', icon: Wand2, isAi: true },
     { label: 'Automation', path: '/automation', icon: Cpu, badge: 'Active' },
-    { label: 'Task Tracker', path: '/tasks', icon: CheckSquare, badge: '12' },
+    { label: 'Task Tracker', path: '/tasks', icon: CheckSquare, badge: String(activeTasksCount) },
     { label: 'Test Repository', path: '/repository', icon: FolderGit2 },
   ];
 
