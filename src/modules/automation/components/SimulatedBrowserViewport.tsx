@@ -20,6 +20,11 @@ import {
   FileSpreadsheet,
   AlertTriangle,
   RotateCcw,
+  UserPlus,
+  Mail,
+  KeyRound,
+  Shield,
+  Check,
 } from 'lucide-react';
 import { SimulationStep } from '../types';
 
@@ -40,10 +45,41 @@ export const SimulatedBrowserViewport: React.FC<SimulatedBrowserViewportProps> =
   scriptName,
   activeTestCaseKey = 'TC-201',
 }) => {
-  const isMemberPolicyCloud204 = scriptName.includes('CLOUD') || scriptName.includes('204') || scriptName.includes('Policy') || scriptName.includes('Export') || scriptName.includes('Admin');
+  const isRegistration =
+    scriptName.toLowerCase().includes('auth') ||
+    scriptName.toLowerCase().includes('register') ||
+    scriptName.toLowerCase().includes('signup') ||
+    activeTestCaseKey.startsWith('TC-10') ||
+    activeTestCaseKey.startsWith('TC-50');
+
+  const isMemberPolicyCloud204 =
+    !isRegistration &&
+    (scriptName.includes('CLOUD') ||
+      scriptName.includes('204') ||
+      scriptName.includes('Policy') ||
+      scriptName.includes('Export') ||
+      scriptName.includes('Admin') ||
+      activeTestCaseKey.startsWith('TC-20'));
+
   const isWireTransfer = scriptName.includes('wire') || scriptName.includes('mfa') || scriptName.includes('DBANK104');
   const activeStep = steps[currentStepIndex];
   const isStepFailed = activeStep && activeStep.status === 'failed';
+
+  const getUrl = () => {
+    if (isRegistration) {
+      if (activeTestCaseKey === 'TC-102' || activeTestCaseKey === 'TC-502') return '/auth/register?error=validation';
+      if (activeTestCaseKey === 'TC-103' || activeTestCaseKey === 'TC-503') return '/auth/register?boundary=password-min';
+      if (activeTestCaseKey === 'TC-104' || activeTestCaseKey === 'TC-504') return '/auth/register?error=duplicate-409';
+      if (activeTestCaseKey === 'TC-105' || activeTestCaseKey === 'TC-505') return '/auth/register?sanitize=xss-filter';
+      return '/auth/register';
+    }
+    if (activeTestCaseKey === 'TC-202') return '/member-portal/unauthorized-export';
+    if (activeTestCaseKey === 'TC-203') return '/data-pipeline/heavy-stream';
+    if (activeTestCaseKey === 'TC-204') return '/compliance/pii-masking-audit';
+    if (activeTestCaseKey === 'TC-205') return '/session-monitor/rollback';
+    if (isMemberPolicyCloud204) return '/member-policies/data-export';
+    return '/transfers/wire';
+  };
 
   return (
     <div
@@ -80,34 +116,21 @@ export const SimulatedBrowserViewport: React.FC<SimulatedBrowserViewportProps> =
         <div
           style={{
             flex: 1,
-            backgroundColor: '#1E293B',
+            backgroundColor: '#020617',
             borderRadius: 'var(--radius-sm)',
-            padding: '0.25rem 0.65rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.4rem',
-            color: '#94A3B8',
+            padding: '3px 10px',
             fontSize: '11px',
             fontFamily: 'var(--font-mono)',
+            color: '#94A3B8',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            border: '1px solid #1E293B',
           }}
         >
-          <Lock size={12} style={{ color: '#10B981' }} />
-          <span style={{ color: '#E2E8F0' }}>
-            {isMemberPolicyCloud204 ? 'https://admin.cloud.enterprise.internal' : 'https://qa-sandbox.dbank.verix.io'}
-          </span>
-          <span style={{ color: '#64748B' }}>
-            {activeTestCaseKey === 'TC-202'
-              ? '/member-portal/unauthorized-export'
-              : activeTestCaseKey === 'TC-203'
-              ? '/data-pipeline/heavy-stream'
-              : activeTestCaseKey === 'TC-204'
-              ? '/compliance/pii-masking-audit'
-              : activeTestCaseKey === 'TC-205'
-              ? '/session-monitor/rollback'
-              : isMemberPolicyCloud204
-              ? '/member-policies/data-export'
-              : '/transfers/wire'}
-          </span>
+          <Lock size={11} style={{ color: '#10B981' }} />
+          <span>https://{isRegistration ? 'auth.verix.io' : isMemberPolicyCloud204 ? 'admin.cloud.enterprise.internal' : 'qa-sandbox.dbank.verix.io'}</span>
+          <span style={{ color: '#38BDF8' }}>{getUrl()}</span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#64748B', fontSize: '11px' }}>
@@ -128,9 +151,324 @@ export const SimulatedBrowserViewport: React.FC<SimulatedBrowserViewportProps> =
           flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
+          overflowY: 'auto',
         }}
       >
-        {isMemberPolicyCloud204 ? (
+        {/* ========================================================================= */}
+        {/* REGISTRATION PORTAL SYSTEM UNDER TEST (AUTH-101 / TC-101..TC-105)        */}
+        {/* ========================================================================= */}
+        {isRegistration ? (
+          <div
+            style={{
+              width: '100%',
+              maxWidth: '460px',
+              backgroundColor: 'var(--bg-surface)',
+              borderRadius: 'var(--radius-lg)',
+              padding: '1.5rem',
+              border: '1px solid var(--border-subtle)',
+              boxShadow: 'var(--shadow-md)',
+            }}
+          >
+            {/* Header */}
+            <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
+              <div
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: 'var(--radius-md)',
+                  backgroundColor: 'rgba(56, 189, 248, 0.15)',
+                  color: 'var(--accent-primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 0.5rem',
+                }}
+              >
+                <UserPlus size={22} />
+              </div>
+              <div style={{ fontWeight: 700, fontSize: 'var(--text-md)', color: 'var(--text-primary)' }}>
+                Create your Verix QA Account
+              </div>
+              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                Interactive Registration Portal (AUTH-101)
+              </div>
+            </div>
+
+            {/* TC-101 / TC-501: Happy Path Success Screen */}
+            {(activeTestCaseKey === 'TC-101' || activeTestCaseKey === 'TC-501') && currentStepIndex >= 2 ? (
+              <div className="animate-fade-in" style={{ textAlign: 'center', padding: '1rem 0' }}>
+                <div
+                  style={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                    color: 'var(--status-passed)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 0.75rem',
+                  }}
+                >
+                  <CheckCircle2 size={32} />
+                </div>
+                <div style={{ fontWeight: 700, fontSize: 'var(--text-md)', color: 'var(--status-passed)' }}>
+                  Account Created Successfully!
+                </div>
+                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                  Welcome, <strong>Alex Morgan</strong>! An activation email has been dispatched to <code>alex.morgan@company.com</code>.
+                </div>
+                <div style={{ marginTop: '1rem', padding: '0.5rem', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg-surface-hover)', fontSize: '11px', color: 'var(--text-muted)' }}>
+                  HTTP 201 Created • User Provisioned • AC-1 Verified ✓
+                </div>
+              </div>
+            ) : (
+              /* Live Registration Form */
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                {/* TC-104: 409 Duplicate Email Alert */}
+                {(activeTestCaseKey === 'TC-104' || activeTestCaseKey === 'TC-504') && currentStepIndex >= 1 && (
+                  <div
+                    className="animate-fade-in"
+                    style={{
+                      padding: '0.65rem 0.85rem',
+                      borderRadius: 'var(--radius-md)',
+                      backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                      border: '1px solid rgba(245, 158, 11, 0.4)',
+                      color: 'var(--status-warning)',
+                      fontSize: '11px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
+                    <AlertTriangle size={15} style={{ flexShrink: 0 }} />
+                    <span>
+                      <strong>409 Conflict:</strong> Email <code>alex.morgan@company.com</code> is already registered. <a href="#login" style={{ color: 'var(--accent-primary)', textDecoration: 'underline' }}>Log in instead →</a>
+                    </span>
+                  </div>
+                )}
+
+                {/* TC-105: XSS Sanitization Badge */}
+                {(activeTestCaseKey === 'TC-105' || activeTestCaseKey === 'TC-505') && (
+                  <div
+                    className="animate-fade-in"
+                    style={{
+                      padding: '0.5rem 0.75rem',
+                      borderRadius: 'var(--radius-md)',
+                      backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                      border: '1px solid rgba(139, 92, 246, 0.3)',
+                      color: '#A78BFA',
+                      fontSize: '11px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
+                    <Shield size={14} style={{ flexShrink: 0 }} />
+                    <span>
+                      <strong>OWASP XSS Filter Active:</strong> HTML script tags stripped and entity-escaped safely.
+                    </span>
+                  </div>
+                )}
+
+                {/* Full Name */}
+                <div>
+                  <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '3px' }}>
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    readOnly
+                    value={
+                      activeTestCaseKey === 'TC-105' || activeTestCaseKey === 'TC-505'
+                        ? "<script>alert('xss')</script>Alex Morgan"
+                        : currentStepIndex >= 1
+                        ? 'Alex Morgan'
+                        : ''
+                    }
+                    placeholder="e.g. Alex Morgan"
+                    style={{
+                      width: '100%',
+                      padding: '0.45rem 0.65rem',
+                      borderRadius: 'var(--radius-sm)',
+                      backgroundColor: 'var(--bg-input)',
+                      border: '1px solid var(--border-default)',
+                      color: 'var(--text-primary)',
+                      fontSize: 'var(--text-xs)',
+                    }}
+                  />
+                  {(activeTestCaseKey === 'TC-105' || activeTestCaseKey === 'TC-505') && (
+                    <span style={{ fontSize: '10px', color: '#10B981', marginTop: '2px', display: 'block' }}>
+                      Sanitized output: <code>Alex Morgan</code> (0% vulnerability)
+                    </span>
+                  )}
+                </div>
+
+                {/* Work Email */}
+                <div>
+                  <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '3px' }}>
+                    Business Email
+                  </label>
+                  <input
+                    type="text"
+                    readOnly
+                    value={
+                      activeTestCaseKey === 'TC-102' || activeTestCaseKey === 'TC-502'
+                        ? 'invalid-user@'
+                        : currentStepIndex >= 1
+                        ? 'alex.morgan@company.com'
+                        : ''
+                    }
+                    placeholder="name@company.com"
+                    style={{
+                      width: '100%',
+                      padding: '0.45rem 0.65rem',
+                      borderRadius: 'var(--radius-sm)',
+                      backgroundColor: 'var(--bg-input)',
+                      border:
+                        activeTestCaseKey === 'TC-102' || activeTestCaseKey === 'TC-502'
+                          ? '1px solid var(--status-failed)'
+                          : '1px solid var(--border-default)',
+                      color:
+                        activeTestCaseKey === 'TC-102' || activeTestCaseKey === 'TC-502'
+                          ? 'var(--status-failed)'
+                          : 'var(--text-primary)',
+                      fontSize: 'var(--text-xs)',
+                    }}
+                  />
+                  {(activeTestCaseKey === 'TC-102' || activeTestCaseKey === 'TC-502') && (
+                    <span style={{ fontSize: '10px', color: 'var(--status-failed)', marginTop: '2px', display: 'block' }}>
+                      ⚠️ Please enter a valid email format (e.g. name@company.com)
+                    </span>
+                  )}
+                </div>
+
+                {/* Password with Boundary Meter */}
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
+                    <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Password</label>
+                    <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Min 8 chars</span>
+                  </div>
+                  <input
+                    type="password"
+                    readOnly
+                    value={
+                      activeTestCaseKey === 'TC-103' || activeTestCaseKey === 'TC-503'
+                        ? 'Pass12!'
+                        : currentStepIndex >= 1
+                        ? 'SecurePass2026!'
+                        : ''
+                    }
+                    placeholder="••••••••••••"
+                    style={{
+                      width: '100%',
+                      padding: '0.45rem 0.65rem',
+                      borderRadius: 'var(--radius-sm)',
+                      backgroundColor: 'var(--bg-input)',
+                      border:
+                        activeTestCaseKey === 'TC-103' || activeTestCaseKey === 'TC-503'
+                          ? '1px solid #F59E0B'
+                          : '1px solid var(--border-default)',
+                      color: 'var(--text-primary)',
+                      fontSize: 'var(--text-xs)',
+                    }}
+                  />
+                  {(activeTestCaseKey === 'TC-103' || activeTestCaseKey === 'TC-503') && (
+                    <div style={{ marginTop: '4px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#F59E0B' }}>
+                        <span>⚠️ 7/8 characters (1 char below minimum limit)</span>
+                        <span>Boundary Check</span>
+                      </div>
+                      <div style={{ height: '4px', borderRadius: '2px', backgroundColor: '#1E293B', marginTop: '2px' }}>
+                        <div style={{ height: '100%', width: '87.5%', backgroundColor: '#F59E0B' }} />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Confirm Password */}
+                <div>
+                  <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '3px' }}>
+                    Confirm Password
+                  </label>
+                  <input
+                    type="password"
+                    readOnly
+                    value={
+                      activeTestCaseKey === 'TC-102' || activeTestCaseKey === 'TC-502'
+                        ? 'Mismatch999!'
+                        : currentStepIndex >= 1
+                        ? 'SecurePass2026!'
+                        : ''
+                    }
+                    placeholder="••••••••••••"
+                    style={{
+                      width: '100%',
+                      padding: '0.45rem 0.65rem',
+                      borderRadius: 'var(--radius-sm)',
+                      backgroundColor: 'var(--bg-input)',
+                      border:
+                        activeTestCaseKey === 'TC-102' || activeTestCaseKey === 'TC-502'
+                          ? '1px solid var(--status-failed)'
+                          : '1px solid var(--border-default)',
+                      color: 'var(--text-primary)',
+                      fontSize: 'var(--text-xs)',
+                    }}
+                  />
+                  {(activeTestCaseKey === 'TC-102' || activeTestCaseKey === 'TC-502') && (
+                    <span style={{ fontSize: '10px', color: 'var(--status-failed)', marginTop: '2px', display: 'block' }}>
+                      ⚠️ Passwords do not match
+                    </span>
+                  )}
+                </div>
+
+                {/* Terms Checkbox */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                  <input
+                    type="checkbox"
+                    readOnly
+                    checked={currentStepIndex >= 1}
+                    style={{ cursor: 'pointer', accentColor: 'var(--accent-primary)' }}
+                  />
+                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                    I agree to the Verix Terms of Service & Privacy Policy
+                  </span>
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  disabled
+                  style={{
+                    marginTop: '0.5rem',
+                    padding: '0.5rem',
+                    borderRadius: 'var(--radius-md)',
+                    backgroundColor:
+                      activeTestCaseKey === 'TC-102' || activeTestCaseKey === 'TC-502'
+                        ? 'var(--bg-surface-hover)'
+                        : 'var(--accent-primary)',
+                    color:
+                      activeTestCaseKey === 'TC-102' || activeTestCaseKey === 'TC-502'
+                        ? 'var(--text-muted)'
+                        : '#FFFFFF',
+                    border: 'none',
+                    fontWeight: 700,
+                    fontSize: 'var(--text-xs)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <UserPlus size={14} />
+                  <span>Create Verix Account</span>
+                </button>
+              </div>
+            )}
+          </div>
+        ) : isMemberPolicyCloud204 ? (
+          /* ========================================================================= */
+          /* CLOUD-204 ADMIN CONSOLE SYSTEM UNDER TEST                                 */
+          /* ========================================================================= */
           activeTestCaseKey === 'TC-202' ? (
             /* TC-202: 403 Forbidden Security Alert View */
             <div
@@ -259,7 +597,7 @@ export const SimulatedBrowserViewport: React.FC<SimulatedBrowserViewportProps> =
               </div>
             </div>
           ) : activeTestCaseKey === 'TC-205' ? (
-            /* TC-205: Session Timeout Rollback Monitor */
+            /* TC-205: Session Rollback View */
             <div
               style={{
                 width: '100%',
@@ -275,24 +613,27 @@ export const SimulatedBrowserViewport: React.FC<SimulatedBrowserViewportProps> =
                 <RotateCcw size={20} style={{ color: '#38BDF8' }} />
                 <div>
                   <div style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
-                    Session Resilience & State Rollback
+                    Session Recovery & Safe Rollback
                   </div>
-                  <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Simulated Network Disconnect at 45% Stream</div>
+                  <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Fault-Tolerant State Machine</div>
                 </div>
               </div>
 
-              <div style={{ padding: '0.75rem', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-surface-hover)', fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '0.75rem', lineHeight: 1.5 }}>
-                • WebSocket interrupt detected<br />
-                • Temporary staging tables purged<br />
-                • Session returned to clean idle state without orphaned locks
+              <div style={{ padding: '0.75rem', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg-app)', border: '1px solid var(--border-subtle)', fontSize: '11px', marginBottom: '0.75rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--status-passed)', marginBottom: '4px', fontWeight: 600 }}>
+                  <CheckCircle2 size={14} /> Temporary files safely purged
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--status-passed)', fontWeight: 600 }}>
+                  <CheckCircle2 size={14} /> Reconnect token issued with zero corrupted artifacts
+                </div>
               </div>
 
               <div style={{ fontSize: '11px', color: 'var(--status-passed)', fontWeight: 600, textAlign: 'center' }}>
-                ✓ System Resilience Verified (Zero State Corruption)
+                ✓ Safe Rollback Protocol Verified Under Session Disconnect
               </div>
             </div>
           ) : (
-            /* Default: TC-201 Cloud Admin Console: Member Policy View */
+            /* TC-201: Standard Happy Path / Drift Target Switch */
             <div
               style={{
                 width: '100%',
@@ -304,18 +645,16 @@ export const SimulatedBrowserViewport: React.FC<SimulatedBrowserViewportProps> =
                 boxShadow: 'var(--shadow-sm)',
               }}
             >
-              {/* Header */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <ShieldCheck size={18} style={{ color: 'var(--accent-primary)' }} />
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
-                      Cloud Admin Console: Policy Utility
-                    </div>
-                    <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Role: CloudAdmin • User: adminUser</div>
-                  </div>
+                  <Hospital size={18} style={{ color: 'var(--accent-primary)' }} />
+                  <span style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
+                    Cloud Policy Management
+                  </span>
                 </div>
-                <span className="badge badge-passed">Cloud Connected</span>
+                <span className="badge badge-passed" style={{ fontSize: '10px' }}>
+                  v3.4.0 Live
+                </span>
               </div>
 
               {/* Member Selector Dropdown Preview */}
@@ -428,31 +767,40 @@ export const SimulatedBrowserViewport: React.FC<SimulatedBrowserViewportProps> =
                       }}
                     >
                       <Sparkles size={10} />
-                      AI Healed: `[data-testid="member-export-toggle"]`
+                      Repaired with `[data-testid='member-export-toggle']`
                     </div>
                   )}
                 </div>
 
-                {/* Second Toggle */}
-                <div style={{ padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>Enable cloud backup synchronization</span>
-                  <ToggleRight size={20} style={{ color: '#38BDF8' }} />
-                </div>
-
-                {/* Third Toggle */}
-                <div style={{ padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>Enable audit logging for sensitive assets</span>
-                  <ToggleRight size={20} style={{ color: '#38BDF8' }} />
+                {/* Secondary permission toggle */}
+                <div
+                  style={{
+                    padding: '0.65rem 0.75rem',
+                    borderRadius: 'var(--radius-md)',
+                    backgroundColor: 'var(--bg-surface-hover)',
+                    border: '1px solid var(--border-subtle)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: 500, color: 'var(--text-primary)' }}>
+                      Allow scheduled offline database synchronization
+                    </div>
+                    <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Background Sync Agent</div>
+                  </div>
+                  <ToggleRight size={22} style={{ color: '#10B981' }} />
                 </div>
               </div>
             </div>
           )
         ) : (
-          /* Default: Wire Transfer View */
+          /* Wire Transfer Portal fallback */
           <div
             style={{
               width: '100%',
-              maxWidth: '420px',
+              maxWidth: '440px',
               backgroundColor: 'var(--bg-surface)',
               borderRadius: 'var(--radius-lg)',
               padding: '1.25rem',
@@ -460,26 +808,36 @@ export const SimulatedBrowserViewport: React.FC<SimulatedBrowserViewportProps> =
               boxShadow: 'var(--shadow-sm)',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem' }}>
-              <div style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
-                International Wire Transfer
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <CreditCard size={18} style={{ color: 'var(--accent-primary)' }} />
+                <span style={{ fontWeight: 600, fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
+                  Digital Banking Wire Transfer
+                </span>
               </div>
-              <span className="badge badge-passed">Verified Sandbox</span>
+              <span className="badge badge-passed" style={{ fontSize: '10px' }}>
+                Sandbox Active
+              </span>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: 'var(--text-xs)' }}>
               <div>
-                <label style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>Recipient IBAN</label>
-                <div style={{ padding: '0.45rem 0.65rem', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg-surface-hover)', fontFamily: 'var(--font-mono)' }}>
-                  GB82 WEST 1234 5678 9012 34
+                <label style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '2px' }}>Recipient Account</label>
+                <div style={{ padding: '0.45rem', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg-app)', border: '1px solid var(--border-subtle)', fontFamily: 'var(--font-mono)' }}>
+                  DE89 3704 0044 0532 0130 00
                 </div>
               </div>
 
               <div>
-                <label style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>Amount (USD)</label>
-                <div style={{ padding: '0.45rem 0.65rem', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg-surface-hover)', fontWeight: 700, color: 'var(--accent-primary)' }}>
-                  $ 5,000.00 USD
+                <label style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '2px' }}>Amount (USD)</label>
+                <div style={{ padding: '0.45rem', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg-app)', border: '1px solid var(--border-subtle)', fontWeight: 700, color: 'var(--status-passed)' }}>
+                  $ 12,500.00
                 </div>
+              </div>
+
+              <div style={{ marginTop: '0.5rem', padding: '0.65rem', borderRadius: 'var(--radius-sm)', backgroundColor: 'rgba(56, 189, 248, 0.08)', border: '1px solid rgba(56, 189, 248, 0.2)', fontSize: '11px' }}>
+                <div style={{ fontWeight: 600, color: '#38BDF8', marginBottom: '2px' }}>High-Value Transfer Triggered</div>
+                <div style={{ color: 'var(--text-secondary)' }}>Threshold &gt; $5,000 mandates biometric multi-factor challenge.</div>
               </div>
             </div>
           </div>

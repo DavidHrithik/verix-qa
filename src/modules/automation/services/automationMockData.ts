@@ -745,5 +745,343 @@ Feature: DBANK-108 - Virtual Card Management and Instant Freeze
     When customer clicks toggle for "Lock Virtual Card" on card "VISA-4091"
     Then the card status should immediately transition to "FROZEN"
     And real-time POS authorization sandbox should reject pending charges`
+  },
+  {
+    id: 'auto-auth101',
+    storyKey: 'AUTH-101',
+    storyTitle: 'Customer Registration & Account Provisioning Portal',
+    testCaseKey: 'TC-101',
+    testCaseTitle: 'Primary Registration Flow with Validation & Security Gates',
+    featureTitle: 'AUTH-101 - Customer Registration & Account Provisioning Portal',
+    name: 'AUTH101_Customer_Registration.feature',
+    folderCategory: 'Authentication',
+    projectId: 'proj-1',
+    testCaseId: 'tc-101',
+    framework: 'Playwright',
+    status: 'Active',
+    lastRunStatus: 'Passed',
+    executionCount: 8,
+    lastExecutionDuration: 1.4,
+    lastExecutedAt: '2026-08-31T12:00:00Z',
+    repoPath: 'src/test/features/auth/AUTH101_Customer_Registration.feature',
+    subScenarios: [
+      {
+        id: 'scen-auth-101',
+        testCaseKey: 'TC-101',
+        title: 'Scenario 1: Primary Happy Path - Valid Registration Flow',
+        vectorType: 'Functional / Happy Path',
+        steps: [
+          {
+            stepNumber: 1,
+            keyword: 'Given',
+            title: 'Given user is on the Verix Registration Portal',
+            action: 'Navigate to https://auth.verix.io/register',
+            locator: `page.goto('https://auth.verix.io/register')`,
+            expectedResult: 'Registration form rendered with clean input fields',
+            status: 'pending',
+            durationMs: 320,
+            uiTargetName: 'Registration Form View'
+          },
+          {
+            stepNumber: 2,
+            keyword: 'When',
+            title: 'When user submits valid name, business email, and matching password',
+            action: 'Fill Full Name, Email, Password, and check Terms',
+            locator: `page.fill('#email', 'alex.morgan@company.com')`,
+            expectedResult: 'Inputs validated with 0 errors',
+            status: 'pending',
+            durationMs: 450,
+            uiTargetName: 'Form Submission'
+          },
+          {
+            stepNumber: 3,
+            keyword: 'Then',
+            title: 'Then account is provisioned with 201 Created confirmation',
+            action: 'Assert Account Created Successfully banner displayed',
+            locator: `expect(page.locator('.welcome-banner')).toBeVisible()`,
+            expectedResult: 'HTTP 201 Created and welcome confirmation rendered',
+            status: 'pending',
+            durationMs: 280,
+            uiTargetName: 'Welcome Banner'
+          }
+        ]
+      },
+      {
+        id: 'scen-auth-102',
+        testCaseKey: 'TC-102',
+        title: 'Scenario 2: Negative Input Gate - Invalid Email & Password Mismatch',
+        vectorType: 'Security / RBAC Gate',
+        steps: [
+          {
+            stepNumber: 1,
+            keyword: 'Given',
+            title: 'Given user enters invalid email format "invalid-user@" and mismatched password',
+            action: 'Populate invalid payload in form',
+            locator: `page.fill('#email', 'invalid-user@')`,
+            expectedResult: 'Form populated with invalid fields',
+            status: 'pending',
+            durationMs: 300,
+            uiTargetName: 'Invalid Input Fields'
+          },
+          {
+            stepNumber: 2,
+            keyword: 'When',
+            title: 'When user clicks "Create Verix Account" button',
+            action: 'Trigger client-side validation submit',
+            locator: `page.click('button[type="submit"]')`,
+            expectedResult: 'Client validation intercepts form submit',
+            status: 'pending',
+            durationMs: 250,
+            uiTargetName: 'Submit Interceptor'
+          },
+          {
+            stepNumber: 3,
+            keyword: 'Then',
+            title: 'Then inline red error notifications block submission',
+            action: 'Assert error messages visible under email and password fields',
+            locator: `expect(page.locator('.field-error')).toContainText('valid email')`,
+            expectedResult: 'Submission blocked and field error displayed',
+            status: 'pending',
+            durationMs: 220,
+            uiTargetName: 'Error Notification'
+          }
+        ]
+      },
+      {
+        id: 'scen-auth-103',
+        testCaseKey: 'TC-103',
+        title: 'Scenario 3: Boundary Threshold - Password Minimum 8-Character Boundary',
+        vectorType: 'Boundary / Threshold',
+        steps: [
+          {
+            stepNumber: 1,
+            keyword: 'Given',
+            title: 'Given password input is tested with 7 characters "Pass12!" (1 below minimum)',
+            action: 'Enter 7-character password boundary test string',
+            locator: `page.fill('#password', 'Pass12!')`,
+            expectedResult: 'Boundary threshold evaluated in real-time',
+            status: 'pending',
+            durationMs: 290,
+            uiTargetName: 'Password Boundary Input'
+          },
+          {
+            stepNumber: 2,
+            keyword: 'When',
+            title: 'When focus shifts from password input field',
+            action: 'Trigger field blur event',
+            locator: `page.locator('#password').blur()`,
+            expectedResult: 'Validation rule triggers boundary helper tooltip',
+            status: 'pending',
+            durationMs: 210,
+            uiTargetName: 'Boundary Event'
+          },
+          {
+            stepNumber: 3,
+            keyword: 'Then',
+            title: 'Then helper text enforces "Password must be at least 8 characters"',
+            action: 'Assert boundary warning alert is visible',
+            locator: `expect(page.locator('.boundary-warning')).toBeVisible()`,
+            expectedResult: '8-character threshold strictly enforced',
+            status: 'pending',
+            durationMs: 190,
+            uiTargetName: 'Boundary Alert'
+          }
+        ]
+      },
+      {
+        id: 'scen-auth-104',
+        testCaseKey: 'TC-104',
+        title: 'Scenario 4: Edge Case - Duplicate Email HTTP 409 Conflict Handling',
+        vectorType: 'Edge Case / PII Governance',
+        steps: [
+          {
+            stepNumber: 1,
+            keyword: 'Given',
+            title: 'Given user attempts registration with pre-existing email "alex.morgan@company.com"',
+            action: 'Fill registration form with duplicate email address',
+            locator: `page.fill('#email', 'alex.morgan@company.com')`,
+            expectedResult: 'Form populated with registered user',
+            status: 'pending',
+            durationMs: 310,
+            uiTargetName: 'Duplicate Email Field'
+          },
+          {
+            stepNumber: 2,
+            keyword: 'When',
+            title: 'When form is submitted to identity provisioning service',
+            action: 'Submit registration request to backend API',
+            locator: `page.click('button[type="submit"]')`,
+            expectedResult: 'Backend returns HTTP 409 Conflict status',
+            status: 'pending',
+            durationMs: 400,
+            uiTargetName: 'Conflict Interceptor'
+          },
+          {
+            stepNumber: 3,
+            keyword: 'Then',
+            title: 'Then warning banner displays 409 Conflict with direct login link',
+            action: 'Assert duplicate account banner rendered',
+            locator: `expect(page.locator('.alert-warning')).toContainText('already registered')`,
+            expectedResult: 'Conflict banner rendered with login redirect link',
+            status: 'pending',
+            durationMs: 240,
+            uiTargetName: 'Conflict Banner'
+          }
+        ]
+      },
+      {
+        id: 'scen-auth-105',
+        testCaseKey: 'TC-105',
+        title: 'Scenario 5: OWASP Security - XSS & Malicious Input Sanitization',
+        vectorType: 'Security / RBAC Gate',
+        steps: [
+          {
+            stepNumber: 1,
+            keyword: 'Given',
+            title: 'Given user enters malicious XSS payload "<script>alert(1)</script>Alex" in Full Name',
+            action: 'Enter HTML script tags in Name field',
+            locator: `page.fill('#full-name', '<script>alert(1)</script>Alex Morgan')`,
+            expectedResult: 'Raw payload entered in DOM input',
+            status: 'pending',
+            durationMs: 330,
+            uiTargetName: 'Malicious Payload Input'
+          },
+          {
+            stepNumber: 2,
+            keyword: 'When',
+            title: 'When registration sanitization filter processes input',
+            action: 'Submit form through OWASP security filter',
+            locator: `page.click('button[type="submit"]')`,
+            expectedResult: 'Filter strips script tags and escapes HTML entities',
+            status: 'pending',
+            durationMs: 380,
+            uiTargetName: 'Sanitization Engine'
+          },
+          {
+            stepNumber: 3,
+            keyword: 'Then',
+            title: 'Then name is sanitized to "Alex Morgan" with zero script execution',
+            action: 'Verify 0% XSS execution vulnerability in document tree',
+            locator: `expect(page.locator('.user-display-name')).toHaveText('Alex Morgan')`,
+            expectedResult: 'XSS protection verified with zero vulnerability',
+            status: 'pending',
+            durationMs: 220,
+            uiTargetName: 'Sanitized Output'
+          }
+        ]
+      }
+    ],
+    steps: [
+      {
+        stepNumber: 1,
+        keyword: 'Given',
+        title: 'Given user is on the Verix Registration Portal',
+        action: 'Navigate to https://auth.verix.io/register',
+        locator: `page.goto('https://auth.verix.io/register')`,
+        expectedResult: 'Registration form rendered with clean input fields',
+        status: 'passed',
+        durationMs: 320,
+        uiTargetName: 'Registration Form View'
+      },
+      {
+        stepNumber: 2,
+        keyword: 'When',
+        title: 'When user submits valid name, business email, and matching password',
+        action: 'Fill Full Name, Email, Password, and check Terms',
+        locator: `page.fill('#email', 'alex.morgan@company.com')`,
+        expectedResult: 'Inputs validated with 0 errors',
+        status: 'passed',
+        durationMs: 450,
+        uiTargetName: 'Form Submission'
+      },
+      {
+        stepNumber: 3,
+        keyword: 'Then',
+        title: 'Then account is provisioned with 201 Created confirmation',
+        action: 'Assert Account Created Successfully banner displayed',
+        locator: `expect(page.locator('.welcome-banner')).toBeVisible()`,
+        expectedResult: 'HTTP 201 Created and welcome confirmation rendered',
+        status: 'passed',
+        durationMs: 280,
+        uiTargetName: 'Welcome Banner'
+      }
+    ],
+    gherkinContent: `@AUTH101 @auth @registration @security @compliance @run
+Feature: AUTH-101 - Customer Registration & Account Provisioning Portal
+
+  @TC101 @HappyPath
+  Scenario: TC-101 - Customer registers with valid full name, business email, and password
+    Given user is on the Verix Registration Portal
+    When user submits valid name, business email, and matching password
+    Then account is provisioned with 201 Created confirmation
+
+  @TC102 @NegativePath @Validation
+  Scenario: TC-102 - Customer attempts registration with invalid email format or mismatched password
+    Given user enters invalid email format "invalid-user@" and mismatched password
+    When user clicks "Create Verix Account" button
+    Then inline red error notifications block submission
+
+  @TC103 @Boundary @Threshold
+  Scenario: TC-103 - Password field enforces 8-character minimum boundary threshold
+    Given password input is tested with 7 characters "Pass12!" (1 below minimum)
+    When focus shifts from password input field
+    Then helper text enforces "Password must be at least 8 characters"
+
+  @TC104 @EdgeCase @Conflict
+  Scenario: TC-104 - Duplicate email submission returns HTTP 409 Conflict with login redirect
+    Given user attempts registration with pre-existing email "alex.morgan@company.com"
+    When form is submitted to identity provisioning service
+    Then warning banner displays 409 Conflict with direct login link
+
+  @TC105 @Security @OWASP @XSS
+  Scenario: TC-105 - Input sanitization strips malicious HTML/script tags in name field
+    Given user enters malicious XSS payload "<script>alert(1)</script>Alex" in Full Name
+    When registration sanitization filter processes input
+    Then name is sanitized to "Alex Morgan" with zero script execution`,
+    pageObjectClass: `// Page Object Model: RegisterPage.ts
+export class RegisterPage {
+  fullNameInput = () => page.locator('#full-name');
+  emailInput = () => page.locator('#email');
+  passwordInput = () => page.locator('#password');
+  confirmPasswordInput = () => page.locator('#confirm-password');
+  termsCheckbox = () => page.locator('#terms-agreement');
+  submitButton = () => page.locator('button[data-testid="register-submit"]');
+  welcomeBanner = () => page.locator('.welcome-banner');
+  fieldError = () => page.locator('.field-error');
+  boundaryWarning = () => page.locator('.boundary-warning');
+  conflictAlert = () => page.locator('.alert-warning');
+}`,
+    code: `@AUTH101 @auth @registration @security @compliance @run
+Feature: AUTH-101 - Customer Registration & Account Provisioning Portal
+
+  @TC101 @HappyPath
+  Scenario: TC-101 - Customer registers with valid full name, business email, and password
+    Given user is on the Verix Registration Portal
+    When user submits valid name, business email, and matching password
+    Then account is provisioned with 201 Created confirmation
+
+  @TC102 @NegativePath @Validation
+  Scenario: TC-102 - Customer attempts registration with invalid email format or mismatched password
+    Given user enters invalid email format "invalid-user@" and mismatched password
+    When user clicks "Create Verix Account" button
+    Then inline red error notifications block submission
+
+  @TC103 @Boundary @Threshold
+  Scenario: TC-103 - Password field enforces 8-character minimum boundary threshold
+    Given password input is tested with 7 characters "Pass12!" (1 below minimum)
+    When focus shifts from password input field
+    Then helper text enforces "Password must be at least 8 characters"
+
+  @TC104 @EdgeCase @Conflict
+  Scenario: TC-104 - Duplicate email submission returns HTTP 409 Conflict with login redirect
+    Given user attempts registration with pre-existing email "alex.morgan@company.com"
+    When form is submitted to identity provisioning service
+    Then warning banner displays 409 Conflict with direct login link
+
+  @TC105 @Security @OWASP @XSS
+  Scenario: TC-105 - Input sanitization strips malicious HTML/script tags in name field
+    Given user enters malicious XSS payload "<script>alert(1)</script>Alex" in Full Name
+    When registration sanitization filter processes input
+    Then name is sanitized to "Alex Morgan" with zero script execution`
   }
 ];
