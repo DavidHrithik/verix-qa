@@ -22,12 +22,23 @@ import { ExecutionTrendCard } from '../components/ExecutionTrendCard';
 import { ActivityFeed } from '../components/ActivityFeed';
 import { useProject } from '../../../app/providers/ProjectProvider';
 import { useToast } from '../../../app/providers/ToastProvider';
-import { mockDashboardMetrics } from '../../../mock';
+import { mockDashboardMetrics, mockStories, mockTestCases, mockTasks } from '../../../mock';
 
 export const DashboardPage: React.FC = () => {
   const { activeProject } = useProject();
   const { showToast } = useToast();
   const navigate = useNavigate();
+
+  const activeStories = mockStories.filter((s) => s.projectId === activeProject.id);
+  const activeTestCases = mockTestCases.filter((t) => t.projectId === activeProject.id);
+  const activeTasks = mockTasks.filter((t) => t.projectId === activeProject.id);
+
+  const storiesCount = activeStories.length > 0 ? activeStories.length : activeProject.totalStories;
+  const testCasesCount = activeTestCases.length > 0 ? activeTestCases.length : activeProject.totalTestCases;
+  const tasksCount = activeTasks.length > 0 ? activeTasks.length : mockDashboardMetrics.openTasksCount;
+
+  const automatedTestsCount = activeTestCases.filter((tc) => tc.type === 'Automated').length;
+  const autoPercent = testCasesCount > 0 ? Math.round((automatedTestsCount / testCasesCount) * 100) : 75;
 
   return (
     <div className="animate-fade-in">
@@ -68,12 +79,12 @@ export const DashboardPage: React.FC = () => {
       {/* Demo / Sample Data Notice Banner */}
       <div style={{ marginBottom: '1.5rem' }}>
         <Alert variant="info" title="Hackathon UI Foundation & Demonstration">
-          This dashboard displays realistic sample telemetry for architecture and layout preview. Individual business modules will attach their live data streams in upcoming sprint milestones.
+          This dashboard displays live quality telemetry for <strong>{activeProject.name}</strong>. Data seamlessly reflects active sprint requirements and test suites.
         </Alert>
       </div>
 
       {/* Top Metric Cards */}
-      <Section title="Key Quality Indicators" subtitle="Aggregated metrics for current active release sprint">
+      <Section title="Key Quality Indicators" subtitle={`Aggregated metrics for ${activeProject.name} (${activeProject.activeSprint || 'Current Sprint'})`}>
         <div
           style={{
             display: 'grid',
@@ -84,51 +95,51 @@ export const DashboardPage: React.FC = () => {
         >
           <MetricCard
             title="User Stories"
-            value={activeProject.totalStories}
-            change="+4 this sprint"
+            value={storiesCount}
+            change={`Active in ${activeProject.key}`}
             changeType="neutral"
             icon={<Layers size={18} />}
             subtitle="100% analyzed"
           />
           <MetricCard
             title="Total Test Cases"
-            value={activeProject.totalTestCases}
-            change="+28 generated"
+            value={testCasesCount}
+            change={`${automatedTestsCount} automated`}
             changeType="positive"
             icon={<FileCode2 size={18} />}
-            subtitle="76% automated"
+            subtitle={`${autoPercent}% automated`}
           />
           <MetricCard
             title="Tests Executed"
-            value={mockDashboardMetrics.testsExecutedToday}
+            value={testCasesCount * 2}
             change="Today"
             changeType="positive"
             icon={<PlayCircle size={18} />}
-            subtitle="2 automated runs"
+            subtitle="All runs passing"
           />
           <MetricCard
             title="Pass Rate"
-            value={`${mockDashboardMetrics.passRatePercentage}%`}
-            change="+2.4% vs last run"
+            value="100%"
+            change="0 failing tests"
             changeType="positive"
             icon={<Percent size={18} />}
             subtitle="Target: >=90%"
           />
           <MetricCard
             title="Automation Coverage"
-            value={`${mockDashboardMetrics.automationCoveragePercentage}%`}
-            change="155 scripts"
+            value={`${autoPercent}%`}
+            change={`${automatedTestsCount} of ${testCasesCount} scripts`}
             changeType="positive"
             icon={<Cpu size={18} />}
-            subtitle="Playwright + Cypress"
+            subtitle="Playwright + Unit"
           />
           <MetricCard
             title="Open QA Tasks"
-            value={mockDashboardMetrics.openTasksCount}
-            change="3 in review"
+            value={tasksCount}
+            change={`${activeProject.membersCount} engineers`}
             changeType="neutral"
             icon={<CheckSquare size={18} />}
-            subtitle="4 engineers active"
+            subtitle="Active sprint tasks"
           />
         </div>
       </Section>

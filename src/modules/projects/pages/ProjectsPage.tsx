@@ -14,6 +14,7 @@ import { ProgressBar } from '../../../components/ui/ProgressBar';
 import { useProject } from '../../../app/providers/ProjectProvider';
 import { useToast } from '../../../app/providers/ToastProvider';
 import { Project, ProjectMember } from '../../../types';
+import { mockStories, mockTestCases } from '../../../mock';
 
 /* ─── Helpers ──────────────────────────────────────────────────────────────── */
 
@@ -921,18 +922,27 @@ export const ProjectsPage: React.FC = () => {
                 <span>{proj.activeSprint}</span>
               </div>
 
-              {/* Stats Row — Stories & Tests are clickable, Members opens member editor */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginBottom: '1rem' }}>
-                {statCard(<Users size={13} />, memberList.length > 0 ? memberList.length : proj.membersCount, 'Members', () => openMembers(proj))}
-                {statCard(<Layers size={13} />, proj.totalStories, 'Stories', () => {
-                  setActiveProjectId(proj.id);
-                  navigate('/user-stories');
-                })}
-                {statCard(<FileCode2 size={13} />, proj.totalTestCases, 'Tests', () => {
-                  setActiveProjectId(proj.id);
-                  navigate('/test-cases');
-                })}
-              </div>
+              {/* Stats Row — Stories & Tests are dynamically calculated & clickable */}
+              {(() => {
+                const projectStories = mockStories.filter(s => s.projectId === proj.id);
+                const projectTestCases = mockTestCases.filter(t => t.projectId === proj.id);
+                const storiesCount = projectStories.length > 0 ? projectStories.length : proj.totalStories;
+                const testCasesCount = projectTestCases.length > 0 ? projectTestCases.length : proj.totalTestCases;
+
+                return (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginBottom: '1rem' }}>
+                    {statCard(<Users size={13} />, memberList.length > 0 ? memberList.length : proj.membersCount, 'Members', () => openMembers(proj))}
+                    {statCard(<Layers size={13} />, storiesCount, 'Stories', () => {
+                      setActiveProjectId(proj.id);
+                      navigate('/user-stories');
+                    })}
+                    {statCard(<FileCode2 size={13} />, testCasesCount, 'Tests', () => {
+                      setActiveProjectId(proj.id);
+                      navigate('/test-cases');
+                    })}
+                  </div>
+                );
+              })()}
 
               {/* Team Members Section */}
               <div style={{

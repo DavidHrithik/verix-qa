@@ -10,8 +10,8 @@ interface ProjectContextType {
   updateProject: (id: string, changes: Partial<Omit<Project, 'id' | 'createdAt'>>) => void;
 }
 
-const STORAGE_KEY_PROJECTS = 'verix_projects_v1';
-const STORAGE_KEY_ACTIVE = 'verix_active_project_id_v1';
+const STORAGE_KEY_PROJECTS = 'verix_projects_v2';
+const STORAGE_KEY_ACTIVE = 'verix_active_project_id_v2';
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 

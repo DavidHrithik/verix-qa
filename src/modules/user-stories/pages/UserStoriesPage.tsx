@@ -25,7 +25,9 @@ export const UserStoriesPage: React.FC = () => {
   const { showToast } = useToast();
   const [search, setSearch] = useState('');
 
-  const filteredStories = mockStories.filter(
+  const projectStories = mockStories.filter((s: UserStory) => s.projectId === activeProject.id);
+
+  const filteredStories = projectStories.filter(
     (s: UserStory) =>
       s.title.toLowerCase().includes(search.toLowerCase()) ||
       s.key.toLowerCase().includes(search.toLowerCase())

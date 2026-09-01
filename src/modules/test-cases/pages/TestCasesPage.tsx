@@ -24,6 +24,8 @@ export const TestCasesPage: React.FC = () => {
   const { showToast } = useToast();
   const [showAiPreview, setShowAiPreview] = useState(false);
 
+  const projectTestCases = mockTestCases.filter((tc: TestCase) => tc.projectId === activeProject.id);
+
   const columns: Column<TestCase>[] = [
     {
       key: 'key',
@@ -88,7 +90,7 @@ export const TestCasesPage: React.FC = () => {
         title="Test Cases & Suites"
         description={`Standard and AI synthesized test case definitions for ${activeProject.name}.`}
         breadcrumbs={[{ label: 'Home', href: '/' }, { label: 'Test Cases' }]}
-        badge={<span className="badge badge-default">{mockTestCases.length} Tests</span>}
+        badge={<span className="badge badge-default">{projectTestCases.length} Tests</span>}
         actions={
           <>
             <Button
@@ -121,7 +123,7 @@ export const TestCasesPage: React.FC = () => {
       {showAiPreview && (
         <div style={{ marginBottom: '1.5rem' }} className="animate-fade-in">
           <AIResultContainer
-            title="AI Test Synthesis: DBANK-104 International Wire Transfer"
+            title="AI Test Synthesis: High-Priority Edge Scenarios"
             confidence={96}
             badgeText="Gemini Flash QA Agent"
             headerActions={
@@ -139,14 +141,14 @@ export const TestCasesPage: React.FC = () => {
           >
             <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-primary)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <p>
-                Synthesized <strong>4 high-priority boundary scenarios</strong> covering FX rate jitter, session invalidation during OTP prompt, and IBAN format regex edge cases.
+                Synthesized <strong>high-priority boundary scenarios</strong> covering safety verification, session invalidation, and packet integrity.
               </p>
               <div style={{ backgroundColor: 'var(--bg-surface)', padding: '0.75rem 1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
                 <code>
-                  Scenario: High-value wire triggering SMS MFA timeout<br />
-                  Given user initiates wire transfer &gt; $1,000 USD<br />
-                  When the 60-second OTP challenge countdown expires<br />
-                  Then secure token should invalidate and provide 'Resend Code' fallback
+                  Scenario: Critical telemetry threshold breach alert<br />
+                  Given connected medical device streams sensor data<br />
+                  When temperature exceeds threshold of 42°C<br />
+                  Then immediate safety alert should dispatch within 500ms
                 </code>
               </div>
             </div>
@@ -156,7 +158,7 @@ export const TestCasesPage: React.FC = () => {
 
       <Table<TestCase>
         columns={columns}
-        data={mockTestCases}
+        data={projectTestCases}
         keyExtractor={(tc: TestCase) => tc.id}
       />
     </div>
