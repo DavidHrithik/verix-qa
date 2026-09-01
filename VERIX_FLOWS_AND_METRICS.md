@@ -132,10 +132,13 @@ export interface Project {
                           └─────────────────┘
 ```
 
-### Module 1: User Stories (`/user-stories`)
-* Ingests requirements from Jira / Azure DevOps.
-* Displays acceptance criteria, story priority (`Critical`, `High`, `Medium`, `Low`), and linked test case counts.
-* Tracks story coverage status (`Uncovered`, `Partial`, `Full`).
+### Module 1: User Stories & Requirements Management (`/user-stories`)
+* **Dual Ingestion Channels**:
+  * **Option A — Jira Live Sync**: Queries Jira Cloud projects (e.g. `SNC`, `SNA`) and open sprints to batch-import user stories with story points, priority, and acceptance criteria.
+  * **Option B — Excel / CSV Template Ingestion**: Downloadable standardized `.csv` template with live client-side row parsing, preview validation table, and 1-click batch import.
+  * **Option C — Manual Entry**: Interactive form with dynamic Acceptance Criteria checklist builder (add/remove bullet points).
+* **Story Details Inspection Drawer**: Click any story row to view full acceptance criteria checklist, linked QA test generation action, and source badges (`Jira`, `Excel`, `Manual`).
+* **Dynamic Search & Filtering**: Multi-dimensional filtering across Story Key, Scope text, Priority (`Critical`, `High`, `Medium`, `Low`), and Source.
 
 ### Module 2: Dev ↔ QA Coverage Bridge (`/coverage`)
 * Compares developer unit/smoke test coverage against QA behavioral test cases.

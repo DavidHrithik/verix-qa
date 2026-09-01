@@ -60,6 +60,9 @@ export interface UserStory {
   assignee?: User;
   coverageStatus: 'Uncovered' | 'Partial' | 'Full';
   testCaseCount: number;
+  source?: 'jira' | 'excel' | 'manual';
+  storyPoints?: number;
+  jiraKey?: string;
   createdAt: string;
   updatedAt: string;
 }
