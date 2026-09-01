@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Layers, Plus, Sparkles, Filter, Search, CheckCircle2, Clock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Layers, Plus, Sparkles, Filter, Search, CheckCircle2, Clock, Eye, FileText, CheckCircle } from 'lucide-react';
 import { PageHeader } from '../../../components/layout/PageHeader';
 import { Card } from '../../../components/layout/Card';
 import { Button } from '../../../components/ui/Button';
@@ -10,28 +11,72 @@ import { StatusIndicator } from '../../../components/ui/StatusIndicator';
 import { Alert } from '../../../components/feedback/Alert';
 import { useProject } from '../../../app/providers/ProjectProvider';
 import { useToast } from '../../../app/providers/ToastProvider';
-import { mockStories } from '../../../mock';
-import { UserStory } from '../../../types';
+import { mockStories, mockTestCases } from '../../../mock';
+import { UserStory, TestCase } from '../../../types';
 import { CreateStoryModal } from '../components/CreateStoryModal';
+import { StoryDetailModal } from '../components/StoryDetailModal';
+import { GenerateTestCasesModal } from '../components/GenerateTestCasesModal';
+import { GeneratedTestCaseItem } from '../services/testGenerationService';
 
 export const UserStoriesPage: React.FC = () => {
+  const navigate = useNavigate();
   const { activeProject } = useProject();
   const { showToast } = useToast();
   const [stories, setStories] = useState<UserStory[]>(mockStories);
   const [search, setSearch] = useState('');
+  
+  // Modals state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [selectedStoryForDetail, setSelectedStoryForDetail] = useState<UserStory | null>(null);
+  const [selectedStoryForGenTests, setSelectedStoryForGenTests] = useState<UserStory | null>(null);
 
   const handleStoryCreated = (newStory: UserStory) => {
     setStories((prev) => [newStory, ...prev]);
     showToast('Story Created', `Saved ${newStory.key}: ${newStory.title}`, 'success');
   };
 
-  const handleGenTests = (story: UserStory) => {
-    showToast(
-      'AI Test Generator',
-      `Synthesized 3 automated test scenarios for ${story.key}. Available in Test Cases module.`,
-      'success'
-    );
+  const handleOpenGenTests = (story: UserStory, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setSelectedStoryForGenTests(story);
+  };
+
+  const handleAcceptGeneratedCases = (generatedCases: GeneratedTestCaseItem[], targetModule: 'test-cases' | 'automation' = 'test-cases') => {
+    if (selectedStoryForGenTests) {
+      // Update story state in backlog
+      setStories((prev) =>
+        prev.map((s) =>
+          s.id === selectedStoryForGenTests.id
+            ? {
+                ...s,
+                coverageStatus: 'Full',
+                testCaseCount: Math.max(s.testCaseCount, generatedCases.length),
+              }
+            : s
+        )
+      );
+
+      // Append generated test cases to in-memory mockTestCases if not already present
+      generatedCases.forEach((gc) => {
+        const exists = mockTestCases.some((tc) => tc.id === gc.id || tc.key === gc.key);
+        if (!exists) {
+          mockTestCases.unshift(gc);
+        }
+      });
+
+      showToast(
+        'Test Cases Synthesized',
+        `Generated ${generatedCases.length} multi-vector test cases (${generatedCases.map((c) => c.key).join(', ')}) covering all Acceptance Criteria.`,
+        'success'
+      );
+
+      setSelectedStoryForGenTests(null);
+
+      if (targetModule === 'test-cases') {
+        navigate('/test-cases');
+      } else if (targetModule === 'automation') {
+        navigate('/automation');
+      }
+    }
   };
 
   const filteredStories = stories.filter(
@@ -46,7 +91,17 @@ export const UserStoriesPage: React.FC = () => {
       header: 'Story Key',
       width: '120px',
       render: (story: UserStory) => (
-        <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--accent-primary)' }}>
+        <span
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontWeight: 700,
+            color: 'var(--accent-primary)',
+            cursor: 'pointer',
+            textDecoration: 'underline',
+            textUnderlineOffset: '3px',
+          }}
+          onClick={() => setSelectedStoryForDetail(story)}
+        >
           {story.key}
         </span>
       ),
@@ -55,10 +110,11 @@ export const UserStoriesPage: React.FC = () => {
       key: 'title',
       header: 'Requirement Title & Scope',
       render: (story: UserStory) => (
-        <div>
+        <div style={{ cursor: 'pointer' }} onClick={() => setSelectedStoryForDetail(story)}>
           <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{story.title}</div>
-          <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginTop: '2px' }}>
-            {story.acceptanceCriteria.length} Acceptance Criteria defined
+          <div style={{ fontSize: 'var(--text-xs)', color: 'var(--accent-primary)', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span>{story.acceptanceCriteria.length} Acceptance Criteria defined</span>
+            <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>• (Click to view details)</span>
           </div>
         </div>
       ),
@@ -94,16 +150,26 @@ export const UserStoriesPage: React.FC = () => {
     {
       key: 'actions',
       header: 'Actions',
-      width: '140px',
+      width: '180px',
       render: (story: UserStory) => (
-        <Button
-          size="sm"
-          variant="ai"
-          leftIcon={<Sparkles size={13} />}
-          onClick={() => handleGenTests(story)}
-        >
-          Gen Tests
-        </Button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <Button
+            size="sm"
+            variant="secondary"
+            leftIcon={<Eye size={13} />}
+            onClick={() => setSelectedStoryForDetail(story)}
+          >
+            View
+          </Button>
+          <Button
+            size="sm"
+            variant="ai"
+            leftIcon={<Sparkles size={13} />}
+            onClick={(e) => handleOpenGenTests(story, e)}
+          >
+            Gen Tests
+          </Button>
+        </div>
       ),
     },
   ];
@@ -154,6 +220,25 @@ export const UserStoriesPage: React.FC = () => {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onStoryCreated={handleStoryCreated}
+      />
+
+      {/* Interactive Story Detail Modal */}
+      <StoryDetailModal
+        story={selectedStoryForDetail}
+        isOpen={!!selectedStoryForDetail}
+        onClose={() => setSelectedStoryForDetail(null)}
+        onGenerateTests={(story) => {
+          setSelectedStoryForDetail(null);
+          setSelectedStoryForGenTests(story);
+        }}
+      />
+
+      {/* AI Multi-Vector Test Cases Generation Modal */}
+      <GenerateTestCasesModal
+        story={selectedStoryForGenTests}
+        isOpen={!!selectedStoryForGenTests}
+        onClose={() => setSelectedStoryForGenTests(null)}
+        onAcceptAndNavigate={handleAcceptGeneratedCases}
       />
     </div>
   );
