@@ -1,0 +1,131 @@
+/* ==========================================================================
+   QA COPILOT AI DESIGN SYSTEM STYLES
+   ========================================================================== */
+
+/* AI Action Button */
+.btn-ai {
+  background: linear-gradient(135deg, var(--ai-gradient-from), var(--ai-gradient-to));
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: var(--shadow-ai);
+  position: relative;
+  overflow: hidden;
+  font-weight: 600;
+}
+
+.btn-ai:hover:not(:disabled) {
+  opacity: 0.95;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(124, 58, 237, 0.3);
+}
+
+.btn-ai::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(60deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+  transform: rotate(30deg);
+  pointer-events: none;
+}
+
+/* AI Generated Badge */
+.badge-ai {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(168, 85, 247, 0.15));
+  color: var(--ai-primary);
+  border: 1px solid var(--ai-border-subtle);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: var(--text-xs);
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-full);
+}
+
+/* AI Result Container */
+.ai-result-container {
+  background-color: var(--ai-bg-subtle);
+  border: 1px solid var(--ai-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  position: relative;
+  box-shadow: var(--shadow-xs);
+}
+
+.ai-result-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px dashed var(--ai-border-subtle);
+}
+
+.ai-result-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ai-primary);
+}
+
+/* AI Confidence Indicator */
+.ai-confidence-meter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--text-xs);
+  font-weight: 500;
+}
+
+.ai-confidence-bar {
+  width: 60px;
+  height: 6px;
+  background-color: var(--border-subtle);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.ai-confidence-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: linear-gradient(90deg, #F59E0B, #10B981);
+}
+
+/* AI Loading State Pulse */
+.ai-loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2.5rem;
+  border-radius: var(--radius-lg);
+  background: radial-gradient(circle at center, var(--ai-bg-subtle), transparent 70%);
+  border: 1px dashed var(--ai-border-subtle);
+  text-align: center;
+}
+
+.ai-sparkle-glow {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--ai-gradient-from), var(--ai-gradient-to));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  box-shadow: 0 0 24px var(--ai-glow);
+  animation: pulseSubtle 2s infinite ease-in-out;
+}
+
+/* AI Approve / Reject Controls */
+.ai-action-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
