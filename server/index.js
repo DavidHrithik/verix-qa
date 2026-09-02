@@ -24,14 +24,19 @@ const openai = new OpenAI({
 });
 
 app.post('/api/agent/execute', async (req, res) => {
-  const { prompt, headless = false } = req.body;
+  const { prompt, headless = false, config: clientConfig } = req.body;
 
   if (!prompt) {
     return res.status(400).json({ error: 'Prompt is required' });
   }
 
-  if (!API_KEY) {
-    return res.status(500).json({ error: 'OpenAI API key not configured in .env.local' });
+  const activeApiKey = clientConfig?.apiKey || API_KEY;
+  const activeBaseUrl = clientConfig?.endpoint 
+    ? `${clientConfig.endpoint.replace(/\/$/, '')}/openai/deployments/${clientConfig.deploymentName}`
+    : BASE_URL;
+
+  if (!activeApiKey) {
+    return res.status(500).json({ error: 'Azure AI API key not configured. Please add it in the Settings UI.' });
   }
 
   try {
@@ -48,16 +53,28 @@ The script MUST:
 
 Do not output ANY markdown fences or explanatory text. OUTPUT ONLY VALID JAVASCRIPT CODE.`;
 
-    const aiResponse = await openai.chat.completions.create({
-      model: MODEL,
-      temperature: 0.2,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: prompt }
-      ]
+    const fetchUrl = `${activeBaseUrl}/chat/completions?api-version=${clientConfig?.apiVersion || '2024-02-01'}`;
+    const response = await fetch(fetchUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'api-key': activeApiKey
+      },
+      body: JSON.stringify({
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.2
+      })
     });
 
-    let scriptCode = aiResponse.choices[0]?.message?.content || '';
+    if (!response.ok) {
+      throw new Error(`Azure AI API Error: ${response.statusText}`);
+    }
+
+    const aiResponseData = await response.json();
+    let scriptCode = aiResponseData.choices?.[0]?.message?.content || '';
     scriptCode = scriptCode.replace(/^```javascript\s*/i, '').replace(/^```js\s*/i, '').replace(/```\s*$/i, '').trim();
 
     // 2. Write script to temp file

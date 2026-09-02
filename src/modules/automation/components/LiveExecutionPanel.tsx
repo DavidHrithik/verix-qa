@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Play, Terminal, Image as ImageIcon, Code2, AlertTriangle, CheckCircle2, XCircle, RefreshCw } from 'lucide-react';
+import { useAIConfig } from '../../../app/providers/AIConfigProvider';
 import { Card } from '../../../components/layout/Card';
 import { Button } from '../../../components/ui/Button';
 
@@ -15,16 +16,33 @@ export const LiveExecutionPanel: React.FC = () => {
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const { config } = useAIConfig();
+
   const handleExecute = async () => {
     setIsExecuting(true);
     setResult(null);
     setError(null);
 
+    if (!config.azureApiKey) {
+      setError('Please configure your Azure AI Foundry API Key in Settings first.');
+      setIsExecuting(false);
+      return;
+    }
+
     try {
       const response = await fetch('/api/agent/execute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, headless: false }) // Using headed mode for demo
+        body: JSON.stringify({ 
+          prompt, 
+          headless: false,
+          config: {
+            endpoint: config.azureEndpoint,
+            apiKey: config.azureApiKey,
+            deploymentName: config.azureDeploymentName,
+            apiVersion: config.azureApiVersion
+          }
+        })
       });
 
       const data = await response.json();

@@ -38,7 +38,7 @@ The **Projects Portfolio Module** is the foundational workspace registry of Veri
 │                        PROJECTS PORTFOLIO                              │
 │                                                                        │
 │  ┌─────────────────────────┐             ┌──────────────────────────┐  │
-│  │   Smith & Nephew Cloud  │             │   Smith & Nephew Anakin  │  │
+│  │   Acme Cloud          │             │   Acme Anakin          │  │
 │  │   Key: SNC • Sprint 12  │             │   Key: SNA • Sprint 7    │  │
 │  │                         │             │                          │  │
 │  │  [5 Members] [38 Story] │             │  [4 Members] [24 Story]  │  │
@@ -59,7 +59,7 @@ The **Projects Portfolio Module** is the foundational workspace registry of Veri
 
 2. **Project Workspace Lifecycle (Add & Edit)**:
    - **Add Team Modal**: Onboard new QA workspaces with:
-     - **Project Name** (e.g. `Smith & Nephew Cloud`)
+     - **Project Name** (e.g. `Acme Cloud`)
      - **Project Key** (e.g. `SNC` — 2–6 alphanumeric characters)
      - **Active Sprint** (e.g. `Sprint 12 (Q3 Release)`)
      - **Team Description** (Scope, platform, and QA objectives)
@@ -70,7 +70,7 @@ The **Projects Portfolio Module** is the foundational workspace registry of Veri
    - **Member Fields**:
      - `name`: Full Name (e.g. `Hrithik D.`, auto-generates monogram initials)
      - `role`: Role assignment with color-coded tokens (`QA Lead`, `QA Engineer`, `SDET`, `Product Owner`, `Developer`)
-     - `email`: Work email address (e.g. `hrithik.d@smith-nephew.com`)
+     - `email`: Work email address (e.g. `hrithik.d@acme-corp.com`)
      - `avatarInitials`: 2-letter uppercase initials
    - **Inline Member Editor**: Click **"Edit Details ✏️"** or click on the **Members** stat card to expand inline field editing, remove members, or add new teammates.
 
