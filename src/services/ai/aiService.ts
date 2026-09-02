@@ -10,7 +10,7 @@
  */
 
 import { UserStory, TestCase, AutomationFramework } from '../../types';
-import { isGeminiConfigured, callGemini } from './geminiClient';
+import { isOpenAIConfigured, callOpenAI, getModelName } from './geminiClient';
 import { buildTestCasePrompt, buildScriptPrompt } from './prompts';
 import { generateMultiVectorTestCases, GeneratedTestCaseItem } from '../../modules/user-stories/services/testGenerationService';
 import { synthesizeAutomationScript, ScriptGenerationParams } from '../../modules/automation/services/scriptGenerationService';
@@ -32,17 +32,17 @@ export interface AiScriptResult {
 
 // ─── Public helpers ───────────────────────────────────────────────────────────
 
-export const isAiEnabled = (): boolean => isGeminiConfigured();
+export const isAiEnabled = (): boolean => isOpenAIConfigured();
 
-export const getAiMode = (): AiMode => (isGeminiConfigured() ? 'real' : 'local');
+export const getAiMode = (): AiMode => (isOpenAIConfigured() ? 'real' : 'local');
 
 // ─── Test Case Generation ─────────────────────────────────────────────────────
 
 export const generateTestCases = async (story: UserStory): Promise<AiTestCaseResult> => {
-  if (isGeminiConfigured()) {
+  if (isOpenAIConfigured()) {
     try {
       const prompt = buildTestCasePrompt(story);
-      const response = await callGemini<{ testCases: any[] }>(prompt);
+      const response = await callOpenAI<{ testCases: any[] }>(prompt);
 
       const now = new Date().toISOString();
       const cases: GeneratedTestCaseItem[] = response.testCases.map((tc, idx) => ({
@@ -72,7 +72,7 @@ export const generateTestCases = async (story: UserStory): Promise<AiTestCaseRes
       return { cases, mode: 'real' };
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown AI error';
-      console.warn('[AI Service] Gemini call failed, falling back to local engine:', msg);
+      console.warn(`[AI Service] ${getModelName()} call failed, falling back to local engine:`, msg);
       // Graceful fallback
       return {
         cases: generateMultiVectorTestCases(story),
@@ -94,10 +94,10 @@ export const generateTestCases = async (story: UserStory): Promise<AiTestCaseRes
 export const generateAutomationScript = async (params: ScriptGenerationParams): Promise<AiScriptResult> => {
   const { story, testCase, framework } = params;
 
-  if (isGeminiConfigured()) {
+  if (isOpenAIConfigured()) {
     try {
       const prompt = buildScriptPrompt(story, testCase, framework);
-      const response = await callGemini<{
+      const response = await callOpenAI<{
         gherkinContent: string;
         pageObjectClass: string;
         featureTags: string[];
@@ -120,7 +120,7 @@ export const generateAutomationScript = async (params: ScriptGenerationParams): 
       };
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown AI error';
-      console.warn('[AI Service] Gemini script call failed, falling back to local engine:', msg);
+      console.warn(`[AI Service] ${getModelName()} script call failed, falling back:`, msg);
       return {
         script: synthesizeAutomationScript(params),
         mode: 'local',
