@@ -34,7 +34,29 @@ export const AIResultContainer: React.FC<AIResultContainerProps> = ({
           {headerActions}
         </div>
       </div>
-      <div>{children}</div>
+      <div style={{ position: 'relative', paddingBottom: '16px' }}>
+        {children}
+        {/* AI Watermark Footer */}
+        <div 
+          style={{
+            position: 'absolute',
+            bottom: '0',
+            right: '0',
+            fontSize: '10px',
+            color: 'var(--text-muted)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+            opacity: 0.7,
+            userSelect: 'none',
+            pointerEvents: 'none',
+            fontWeight: 500,
+          }}
+        >
+          <Sparkles size={11} style={{ color: 'var(--ai-primary)' }} />
+          Powered by Azure AI Foundry
+        </div>
+      </div>
     </div>
   );
 };
