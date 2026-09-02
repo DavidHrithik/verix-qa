@@ -18,6 +18,7 @@ import {
   Search,
   Cpu,
   Layers,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
@@ -26,6 +27,7 @@ import { SelfHealingProposal, SelectorCandidate } from '../types';
 
 interface SelfHealingDiffStudioProps {
   proposal: SelfHealingProposal | null;
+  isAIHealing?: boolean;
   onApprove: () => void;
   onReject: () => void;
   onCancel: () => void;
@@ -33,6 +35,7 @@ interface SelfHealingDiffStudioProps {
 
 export const SelfHealingDiffStudio: React.FC<SelfHealingDiffStudioProps> = ({
   proposal,
+  isAIHealing,
   onApprove,
   onReject,
   onCancel,
@@ -40,6 +43,40 @@ export const SelfHealingDiffStudio: React.FC<SelfHealingDiffStudioProps> = ({
   const [selectedCandidate, setSelectedCandidate] = useState<number>(0);
   const [diffMode, setDiffMode] = useState<'split' | 'unified'>('split');
   const [isReportDownloaded, setIsReportDownloaded] = useState<boolean>(false);
+
+  if (isAIHealing) {
+    return (
+      <div
+        className="card"
+        style={{
+          padding: '4rem 1.5rem',
+          textAlign: 'center',
+          color: 'var(--text-primary)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <div style={{ position: 'relative', marginBottom: '1.5rem' }}>
+          <Loader2 
+            size={48} 
+            style={{ color: 'var(--ai-primary)', animation: 'spin 2s linear infinite' }} 
+          />
+          <Sparkles 
+            size={20} 
+            style={{ position: 'absolute', top: '-10px', right: '-10px', color: '#38BDF8', animation: 'pulse 1.5s infinite' }} 
+          />
+        </div>
+        <div style={{ fontWeight: 600, fontSize: 'var(--text-lg)', marginBottom: '0.5rem' }}>
+          Azure AI Foundry is analyzing the DOM...
+        </div>
+        <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', maxWidth: '400px' }}>
+          Executing Real-time Root Cause Analysis and Self-Healing generation using gpt-6.6-sol.
+        </p>
+      </div>
+    );
+  }
 
   if (!proposal) {
     return (
@@ -279,6 +316,33 @@ ${candidates.map((c, i) => `${i + 1}. **${c.strategy.toUpperCase()}** (${c.confi
               Technical Root Cause: {failureScenario.rootCauseAnalysis}
             </div>
           </div>
+
+          {/* 5 Whys Analysis (Real AI Output) */}
+          {proposal.fiveWhys && proposal.fiveWhys.length > 0 && (
+            <div
+              style={{
+                marginTop: '0.5rem',
+                padding: '1rem',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: 'rgba(99, 102, 241, 0.05)',
+                border: '1px dashed rgba(99, 102, 241, 0.3)',
+              }}
+            >
+              <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)', color: '#818CF8', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Search size={16} /> 5 Whys Root Cause Analysis
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {proposal.fiveWhys.map((why, i) => (
+                  <div key={i} style={{ display: 'flex', gap: '0.75rem', fontSize: 'var(--text-xs)' }}>
+                    <div style={{ fontWeight: 700, color: 'var(--text-secondary)', minWidth: '45px' }}>
+                      Why {i + 1}:
+                    </div>
+                    <div style={{ color: 'var(--text-primary)' }}>{why}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </AIResultContainer>
 

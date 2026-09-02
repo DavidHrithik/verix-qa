@@ -105,6 +105,7 @@ export interface SelfHealingProposal {
   aiExplanation: string;
   status: 'pending' | 'approved' | 'rejected';
   timestamp: string;
+  fiveWhys?: string[];
 }
 
 export interface ExecutionLogItem {

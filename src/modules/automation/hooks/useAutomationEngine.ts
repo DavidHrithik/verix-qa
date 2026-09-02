@@ -14,6 +14,8 @@ import {
   computeStabilityScore,
   appendRunHistory,
 } from '../services/runnerSimulationService';
+import { callAzureAIHealer } from '../services/azureAIHealingService';
+import { useAIConfig } from '../../../app/providers/AIConfigProvider';
 import { useToast } from '../../../app/providers/ToastProvider';
 
 export type AutomationTab = 'catalog' | 'synthesizer' | 'studio' | 'runner' | 'healing-diff';
@@ -64,7 +66,9 @@ export const useAutomationEngine = () => {
 
   // Self-Healing Proposal State
   const [healingProposal, setHealingProposal] = useState<SelfHealingProposal | null>(null);
+  const [isAIHealing, setIsAIHealing] = useState<boolean>(false);
 
+  const { config, isConfigured } = useAIConfig();
   const runnerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const activeScript = scripts.find((s) => s.id === activeScriptId) || scripts[0];
@@ -249,7 +253,7 @@ export const useAutomationEngine = () => {
 
             // Construct Self-Healing Proposal automatically
             if (failureToUse) {
-              const proposal: SelfHealingProposal = {
+              const baseProposal: SelfHealingProposal = {
                 id: `heal-prop-${Date.now()}`,
                 scriptId: script.id,
                 scriptName: script.name,
@@ -265,7 +269,57 @@ export const useAutomationEngine = () => {
                 status: 'pending',
                 timestamp: new Date().toISOString(),
               };
-              setHealingProposal(proposal);
+
+              // Async AI Healing execution
+              const runHealerAsync = async () => {
+                setIsAIHealing(true);
+                try {
+                  if (isConfigured) {
+                    console.log('[Azure AI Healer] Requesting real analysis...');
+                    const aiResult = await callAzureAIHealer({
+                      brokenLocator: failureToUse.brokenLocator,
+                      failureMessage: failureToUse.failureMessage,
+                      domSnapshotBefore: failureToUse.domSnapshotBefore,
+                      domSnapshotAfter: failureToUse.domSnapshotAfter,
+                      framework: script.framework,
+                      stepTitle: currentStep.title,
+                      storyKey: script.storyKey,
+                    }, {
+                      ...config,
+                      endpoint: config.azureEndpoint,
+                      apiKey: config.azureApiKey,
+                    });
+
+                    console.log('[Azure AI Healer] Response:', aiResult);
+                    
+                    // Merge real AI results into the proposal
+                    const aiHealedProposal: SelfHealingProposal = {
+                      ...baseProposal,
+                      confidence: aiResult.confidence,
+                      plainEnglishSummary: aiResult.plainEnglish,
+                      aiExplanation: aiResult.rootCause,
+                      fiveWhys: aiResult.fiveWhys.map(w => w.answer || w.question),
+                      failureScenario: {
+                        ...failureToUse,
+                        rootCauseAnalysis: aiResult.rootCause,
+                        plainEnglishExplanation: aiResult.plainEnglish,
+                        candidates: aiResult.candidates.slice(0, 3) as any, // taking top 3
+                      }
+                    };
+                    setHealingProposal(aiHealedProposal);
+                  } else {
+                    console.log('[Azure AI Healer] Not configured, falling back to mock.');
+                    setHealingProposal(baseProposal);
+                  }
+                } catch (error) {
+                  console.warn('[Azure AI Healer] Failed, falling back to mock:', error);
+                  setHealingProposal(baseProposal);
+                } finally {
+                  setIsAIHealing(false);
+                }
+              };
+              
+              runHealerAsync();
             }
 
             showToast(
@@ -451,7 +505,7 @@ export const useAutomationEngine = () => {
 
               // Construct Self-Healing Proposal automatically
               if (scenFailure) {
-                const proposal: SelfHealingProposal = {
+                const baseProposal: SelfHealingProposal = {
                   id: `heal-prop-${Date.now()}`,
                   scriptId: script.id,
                   scriptName: script.name,
@@ -467,7 +521,57 @@ export const useAutomationEngine = () => {
                   status: 'pending',
                   timestamp: new Date().toISOString(),
                 };
-                setHealingProposal(proposal);
+
+                // Async AI Healing execution
+                const runHealerAsync = async () => {
+                  setIsAIHealing(true);
+                  try {
+                    if (isConfigured) {
+                      console.log('[Azure AI Healer] Requesting real analysis...');
+                      const aiResult = await callAzureAIHealer({
+                        brokenLocator: scenFailure.brokenLocator,
+                        failureMessage: scenFailure.failureMessage,
+                        domSnapshotBefore: scenFailure.domSnapshotBefore,
+                        domSnapshotAfter: scenFailure.domSnapshotAfter,
+                        framework: script.framework,
+                        stepTitle: currentStep.title,
+                        storyKey: script.storyKey,
+                      }, {
+                        ...config,
+                        endpoint: config.azureEndpoint,
+                        apiKey: config.azureApiKey,
+                      });
+
+                      console.log('[Azure AI Healer] Response:', aiResult);
+                      
+                      // Merge real AI results into the proposal
+                      const aiHealedProposal: SelfHealingProposal = {
+                        ...baseProposal,
+                        confidence: aiResult.confidence,
+                        plainEnglishSummary: aiResult.plainEnglish,
+                        aiExplanation: aiResult.rootCause,
+                        fiveWhys: aiResult.fiveWhys.map(w => w.answer || w.question),
+                        failureScenario: {
+                          ...scenFailure,
+                          rootCauseAnalysis: aiResult.rootCause,
+                          plainEnglishExplanation: aiResult.plainEnglish,
+                          candidates: aiResult.candidates.slice(0, 3) as any, // taking top 3
+                        }
+                      };
+                      setHealingProposal(aiHealedProposal);
+                    } else {
+                      console.log('[Azure AI Healer] Not configured, falling back to mock.');
+                      setHealingProposal(baseProposal);
+                    }
+                  } catch (error) {
+                    console.warn('[Azure AI Healer] Failed, falling back to mock:', error);
+                    setHealingProposal(baseProposal);
+                  } finally {
+                    setIsAIHealing(false);
+                  }
+                };
+                
+                runHealerAsync();
               }
 
               showToast(
@@ -655,6 +759,7 @@ export const useAutomationEngine = () => {
     activeFailure,
     isHealedRun,
     healingProposal,
+    isAIHealing,
     executionSpeed,
     setActiveTab,
     setActiveScenarioIdx,

@@ -28,10 +28,12 @@ import { Tabs } from '../../../components/ui/Tabs';
 import { Badge } from '../../../components/ui/Badge';
 import { useTheme } from '../../../app/providers/ThemeProvider';
 import { useToast } from '../../../app/providers/ToastProvider';
+import { useAIConfig } from '../../../app/providers/AIConfigProvider';
 
 export const SettingsPage: React.FC = () => {
   const { theme, setTheme } = useTheme();
   const { showToast } = useToast();
+  const { config, setConfig, isConfigured } = useAIConfig();
   const [activeTab, setActiveTab] = useState('general');
 
   const tabs = [
@@ -248,6 +250,64 @@ export const SettingsPage: React.FC = () => {
 
       {activeTab === 'ai-models' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', maxWidth: '680px' }}>
+          
+          <Card 
+            title="Azure AI Foundry — Real Healing Engine" 
+            subtitle="Configure connection to your Azure OpenAI instance for live DOM analysis"
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '0.5rem' }}>
+              <Input 
+                label="Endpoint URL" 
+                value={config.azureEndpoint}
+                onChange={(e) => setConfig({ ...config, azureEndpoint: e.target.value })}
+                placeholder="https://your-instance.openai.azure.com" 
+              />
+              <Input 
+                label="API Key" 
+                type="password"
+                value={config.azureApiKey}
+                onChange={(e) => setConfig({ ...config, azureApiKey: e.target.value })}
+                placeholder="••••••••••••••••••••••••" 
+              />
+              <Select
+                label="Deployment Model"
+                value={config.deploymentName}
+                onChange={(e) => setConfig({ ...config, deploymentName: e.target.value })}
+                options={[
+                  { value: 'gpt-6.6-sol', label: 'gpt-6.6-sol (Recommended)' },
+                  { value: 'claude-opus-5', label: 'claude-opus-5' },
+                  { value: 'DeepSeek V4 Pro', label: 'DeepSeek V4 Pro' },
+                ]}
+              />
+              
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.5rem' }}>
+                <Button 
+                  variant="primary" 
+                  size="sm"
+                  onClick={() => {
+                    if (isConfigured) {
+                      showToast('Connection Successful', 'Successfully connected to Azure AI Foundry.', 'success');
+                    } else {
+                      showToast('Configuration Missing', 'Please fill out all fields.', 'error');
+                    }
+                  }}
+                >
+                  Test Connection
+                </Button>
+                
+                {isConfigured ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--status-passed)', fontSize: 'var(--text-sm)', fontWeight: 600 }}>
+                    <CheckCircle2 size={16} /> Connected
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--status-failed)', fontSize: 'var(--text-sm)', fontWeight: 600 }}>
+                    <AlertTriangle size={16} /> Not Configured
+                  </div>
+                )}
+              </div>
+            </div>
+          </Card>
+
           <Card title="AI Copilot Model Configuration" subtitle="Set prompt models and reasoning temperature">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <Select

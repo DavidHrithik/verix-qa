@@ -50,6 +50,7 @@ export const AutomationPage: React.FC = () => {
     activeFailure,
     isHealedRun,
     healingProposal,
+    isAIHealing,
     selectScript,
     addScript,
     deleteScript,
@@ -221,6 +222,7 @@ export const AutomationPage: React.FC = () => {
       {activeTab === 'healing-diff' && (
         <SelfHealingDiffStudio
           proposal={healingProposal}
+          isAIHealing={isAIHealing}
           onApprove={approveSelfHealing}
           onReject={rejectSelfHealing}
           onCancel={() => setActiveTab('runner')}

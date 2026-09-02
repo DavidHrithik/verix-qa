@@ -19,6 +19,7 @@ import { MetricCard } from '../components/MetricCard';
 import { CoverageBarChart } from '../components/CoverageBarChart';
 import { ExecutionTrendCard } from '../components/ExecutionTrendCard';
 import { ActivityFeed } from '../components/ActivityFeed';
+import { LiveExecutionPanel } from '../../automation/components/LiveExecutionPanel';
 import { useProject } from '../../../app/providers/ProjectProvider';
 import { useToast } from '../../../app/providers/ToastProvider';
 import { useData } from '../../../app/providers/DataProvider';
@@ -168,6 +169,11 @@ export const DashboardPage: React.FC = () => {
           ))}
         </div>
       </div>
+
+      {/* Autonomous Agent Panel */}
+      <Section title="AI Autonomous Agent" subtitle="Ask the AI agent to write and execute web automation live">
+        <LiveExecutionPanel />
+      </Section>
 
       {/* Top Metric Cards */}
       <Section title="Key Quality Indicators" subtitle={`Aggregated metrics for ${activeProject.name} (${activeProject.activeSprint || 'Current Sprint'})`}>
