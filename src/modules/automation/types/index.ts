@@ -4,6 +4,12 @@ export type ScriptExecutionStatus = 'Passed' | 'Failed' | 'Running' | 'Untested'
 export type AutomationViewMode = 'business_bdd' | 'technical_sdet';
 export type GherkinKeyword = 'Given' | 'When' | 'Then' | 'And' | 'But';
 
+export interface RunHistoryEntry {
+  runAt: string;       // ISO timestamp
+  passed: boolean;
+  durationMs?: number;
+}
+
 export interface SelectorCandidate {
   selector: string;
   strategy: 'data-testid' | 'semantic-text' | 'aria-role' | 'css-path' | 'xpath';
@@ -78,6 +84,10 @@ export interface AutomationScriptExtended extends AutomationScript {
   steps: SimulationStep[];
   subScenarios?: BddScenario[];
   failureScenario?: FailureScenario;
+  /** 0–100 stability score derived from runHistory */
+  stabilityScore?: number;
+  /** Rolling window of the last 20 run outcomes */
+  runHistory?: RunHistoryEntry[];
 }
 
 export interface SelfHealingProposal {

@@ -116,6 +116,8 @@ public class ${sanitizedSlug}Page {
     lastExecutedAt: new Date().toISOString(),
     executionCount: 0,
     lastExecutionDuration: 0,
+    stabilityScore: 100,
+    runHistory: [],
     steps,
     failureScenario,
     gherkinContent,
