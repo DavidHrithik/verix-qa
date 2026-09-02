@@ -21,20 +21,22 @@ import { ExecutionTrendCard } from '../components/ExecutionTrendCard';
 import { ActivityFeed } from '../components/ActivityFeed';
 import { useProject } from '../../../app/providers/ProjectProvider';
 import { useToast } from '../../../app/providers/ToastProvider';
-import { mockDashboardMetrics, mockStories, mockTestCases, mockTasks } from '../../../mock';
+import { useData } from '../../../app/providers/DataProvider';
 
 export const DashboardPage: React.FC = () => {
   const { activeProject } = useProject();
   const { showToast } = useToast();
   const navigate = useNavigate();
 
-  const activeStories = mockStories.filter((s) => s.projectId === activeProject.id);
-  const activeTestCases = mockTestCases.filter((t) => t.projectId === activeProject.id);
-  const activeTasks = mockTasks.filter((t) => t.projectId === activeProject.id);
+  const { storiesForProject, testCasesForProject, tasksForProject } = useData();
 
-  const storiesCount = activeStories.length > 0 ? activeStories.length : activeProject.totalStories;
+  const activeStories   = storiesForProject(activeProject.id);
+  const activeTestCases = testCasesForProject(activeProject.id);
+  const activeTasks     = tasksForProject(activeProject.id);
+
+  const storiesCount   = activeStories.length > 0 ? activeStories.length : activeProject.totalStories;
   const testCasesCount = activeTestCases.length > 0 ? activeTestCases.length : activeProject.totalTestCases;
-  const tasksCount = activeTasks.length > 0 ? activeTasks.length : mockDashboardMetrics.openTasksCount;
+  const tasksCount     = activeTasks.length;
 
   const automatedTestsCount = activeTestCases.filter((tc) => tc.type === 'Automated').length;
   const autoPercent = testCasesCount > 0 ? Math.round((automatedTestsCount / testCasesCount) * 100) : 75;

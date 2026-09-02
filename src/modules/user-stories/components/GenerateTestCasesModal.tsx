@@ -18,9 +18,10 @@ import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
 import { AIResultContainer, AIGeneratedBadge } from '../../../components/ai';
-import { UserStory, TestCase } from '../../../types';
-import { mockTestCases } from '../../../mock';
-import { generateMultiVectorTestCases, GeneratedTestCaseItem } from '../services/testGenerationService';
+import { UserStory } from '../../../types';
+import { useData } from '../../../app/providers/DataProvider';
+import { generateTestCases, getAiMode, AiMode } from '../../../services/ai';
+import { GeneratedTestCaseItem } from '../services/testGenerationService';
 
 interface GenerateTestCasesModalProps {
   story: UserStory | null;
@@ -40,20 +41,23 @@ export const GenerateTestCasesModal: React.FC<GenerateTestCasesModalProps> = ({
   const [generatedCases, setGeneratedCases] = useState<GeneratedTestCaseItem[]>([]);
   const [selectedCaseIdx, setSelectedCaseIdx] = useState<number>(0);
 
-  const synthesizeCases = (forceFresh: boolean = false) => {
+  const { testCasesForStory } = useData();
+  const [aiMode, setAiMode] = useState<AiMode>('local');
+  const [aiError, setAiError] = useState<string | null>(null);
+
+  const synthesizeCases = async (forceFresh: boolean = false) => {
     if (!story) return;
 
-    const existingInMock = mockTestCases.filter((tc) => tc.storyId === story.id);
+    const existingInStore = testCasesForStory(story.id);
 
-    if (existingInMock.length > 0 && !forceFresh) {
+    if (existingInStore.length > 0 && !forceFresh) {
       setAlreadyExisted(true);
-      const mapped: GeneratedTestCaseItem[] = existingInMock.map((tc, idx) => {
+      const mapped: GeneratedTestCaseItem[] = existingInStore.map((tc, idx) => {
         const vType: GeneratedTestCaseItem['vectorType'] =
           idx === 0 ? 'Functional / Happy Path' :
           idx === 1 ? 'Security / RBAC Gate' :
           idx === 2 ? 'Boundary / Threshold' :
           idx === 3 ? 'Edge Case / PII Governance' : 'Resilience / Recovery';
-
         return {
           ...tc,
           vectorType: vType,
@@ -61,15 +65,17 @@ export const GenerateTestCasesModal: React.FC<GenerateTestCasesModalProps> = ({
         };
       });
       setGeneratedCases(mapped);
+      setAiMode(getAiMode());
       setIsSynthesizing(false);
     } else {
       setAlreadyExisted(false);
       setIsSynthesizing(true);
-      setTimeout(() => {
-        const cases = generateMultiVectorTestCases(story);
-        setGeneratedCases(cases);
-        setIsSynthesizing(false);
-      }, 900);
+      setAiError(null);
+      const result = await generateTestCases(story);
+      setGeneratedCases(result.cases);
+      setAiMode(result.mode);
+      if (result.error) setAiError(result.error);
+      setIsSynthesizing(false);
     }
   };
 
@@ -139,26 +145,44 @@ export const GenerateTestCasesModal: React.FC<GenerateTestCasesModalProps> = ({
           >
             <Sparkles size={40} className="animate-spin" style={{ color: 'var(--ai-primary)' }} />
             <div>
-              <div style={{ fontWeight: 700, fontSize: 'var(--text-md)', color: 'var(--text-primary)' }}>
-                Synthesizing Multi-Vector Test Cases for {story.key}...
-              </div>
-              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginTop: '4px' }}>
-                Analyzing {story.acceptanceCriteria.length} Acceptance Criteria across Happy Path, Boundary, and Security dimensions.
-              </div>
+              {aiMode === 'real' ? (
+                <>
+                  <div style={{ fontWeight: 700, fontSize: 'var(--text-md)', color: 'var(--text-primary)' }}>
+                    Gemini AI is generating test cases for {story.key}...
+                  </div>
+                  <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginTop: '4px' }}>
+                    Calling Google Gemini — analyzing {story.acceptanceCriteria.length} Acceptance Criteria.
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div style={{ fontWeight: 700, fontSize: 'var(--text-md)', color: 'var(--text-primary)' }}>
+                    Synthesizing test cases for {story.key} locally...
+                  </div>
+                  <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginTop: '4px' }}>
+                    Analyzing {story.acceptanceCriteria.length} Acceptance Criteria across Happy Path, Boundary, and Security dimensions.
+                  </div>
+                </>
+              )}
             </div>
           </div>
         ) : (
           <>
             {/* Top AI Result Header Banner */}
             <AIResultContainer
-              title={alreadyExisted ? `Active Suite: ${generatedCases.length} Test Scenarios for ${story.key}` : `Synthesized ${generatedCases.length} Test Scenarios for ${story.key}`}
-              confidence={97}
-              badgeText={alreadyExisted ? "Test Suite Active" : "Multi-Vector Coverage Engine"}
+              title={alreadyExisted ? `Active Suite: ${generatedCases.length} Test Scenarios for ${story.key}` : `${aiMode === 'real' ? '✦ Gemini AI' : '⚙ Local Engine'}: ${generatedCases.length} Test Scenarios for ${story.key}`}
+              confidence={aiMode === 'real' ? 98 : 94}
+              badgeText={aiMode === 'real' ? 'Gemini AI • Live' : (alreadyExisted ? 'Test Suite Active' : 'Local Mode')}
             >
               <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                {aiError && (
+                  <div style={{ color: '#F59E0B', marginBottom: '4px', fontSize: '10px' }}>
+                    ⚠ AI error — using local engine: {aiError.slice(0, 80)}
+                  </div>
+                )}
                 {alreadyExisted
-                  ? `These ${generatedCases.length} unique test cases are active and linked to ${story.key}. All ${story.acceptanceCriteria.length} acceptance criteria are fully mapped without duplicates.`
-                  : `AI has generated ${generatedCases.length} comprehensive test cases matching all ${story.acceptanceCriteria.length} acceptance criteria of ${story.title}.`}
+                  ? `These ${generatedCases.length} unique test cases are active and linked to ${story.key}. All ${story.acceptanceCriteria.length} acceptance criteria are fully mapped.`
+                  : `${aiMode === 'real' ? 'Gemini AI' : 'Local engine'} generated ${generatedCases.length} comprehensive test cases matching all ${story.acceptanceCriteria.length} acceptance criteria of ${story.title}.`}
               </div>
             </AIResultContainer>
 

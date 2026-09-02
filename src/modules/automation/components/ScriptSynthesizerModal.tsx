@@ -18,10 +18,11 @@ import { Badge } from '../../../components/ui/Badge';
 import { Select } from '../../../components/ui/Select';
 import { AIActionButton, AIGeneratedBadge, AIResultContainer } from '../../../components/ai';
 import { GherkinFeatureViewer } from './GherkinFeatureViewer';
-import { mockStories, mockTestCases } from '../../../mock';
-import { UserStory, TestCase, AutomationFramework } from '../../../types';
-import { synthesizeAutomationScript } from '../services/scriptGenerationService';
+import { useData } from '../../../app/providers/DataProvider';
+import { useProject } from '../../../app/providers/ProjectProvider';
+import { generateAutomationScript, AiMode } from '../../../services/ai';
 import { AutomationScriptExtended } from '../types';
+import { AutomationFramework } from '../../../types';
 
 interface ScriptSynthesizerModalProps {
   isOpen: boolean;
@@ -34,32 +35,40 @@ export const ScriptSynthesizerModal: React.FC<ScriptSynthesizerModalProps> = ({
   onClose,
   onScriptGenerated,
 }) => {
-  const [selectedStoryId, setSelectedStoryId] = useState<string>(mockStories[0].id);
-  const [selectedTestCaseId, setSelectedTestCaseId] = useState<string>(mockTestCases[0].id);
+  const { activeProject } = useProject();
+  const { storiesForProject, testCasesForProject } = useData();
+  const allStories  = storiesForProject(activeProject.id);
+  const allTestCases = testCasesForProject(activeProject.id);
+  const [selectedStoryId, setSelectedStoryId] = useState<string>(allStories[0]?.id ?? '');
+  const [selectedTestCaseId, setSelectedTestCaseId] = useState<string>(allTestCases[0]?.id ?? '');
   const [framework, setFramework] = useState<AutomationFramework>('Playwright');
   const [includeFailureSimulation, setIncludeFailureSimulation] = useState<boolean>(true);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [previewScript, setPreviewScript] = useState<AutomationScriptExtended | null>(null);
+  const [aiMode, setAiMode] = useState<AiMode>('local');
+  const [aiError, setAiError] = useState<string | null>(null);
 
-  const selectedStory = mockStories.find((s) => s.id === selectedStoryId) || mockStories[0];
-  const relatedTestCases = mockTestCases.filter((tc) => tc.storyId === selectedStory.id || !tc.storyId);
+  const selectedStory = allStories.find((s) => s.id === selectedStoryId) || allStories[0];
+  const relatedTestCases = allTestCases.filter((tc) => tc.storyId === selectedStory?.id || !tc.storyId);
   const selectedTestCase = relatedTestCases.find((tc) => tc.id === selectedTestCaseId) || relatedTestCases[0];
 
-  const handleSynthesize = () => {
+  const handleSynthesize = async () => {
+    if (!selectedStory) return;
     setIsGenerating(true);
     setPreviewScript(null);
+    setAiError(null);
 
-    setTimeout(() => {
-      const generated = synthesizeAutomationScript({
-        story: selectedStory,
-        testCase: selectedTestCase,
-        framework,
-        includeFailureDemo: includeFailureSimulation,
-      });
+    const result = await generateAutomationScript({
+      story: selectedStory,
+      testCase: selectedTestCase,
+      framework,
+      includeFailureDemo: includeFailureSimulation,
+    });
 
-      setPreviewScript(generated);
-      setIsGenerating(false);
-    }, 1100);
+    setPreviewScript(result.script);
+    setAiMode(result.mode);
+    if (result.error) setAiError(result.error);
+    setIsGenerating(false);
   };
 
   const handleSaveAndOpen = () => {
@@ -119,10 +128,10 @@ export const ScriptSynthesizerModal: React.FC<ScriptSynthesizerModalProps> = ({
                   value={selectedStoryId}
                   onChange={(e) => {
                     setSelectedStoryId(e.target.value);
-                    const matchingCases = mockTestCases.filter((tc) => tc.storyId === e.target.value);
+                    const matchingCases = allTestCases.filter((tc: import('../../../types').TestCase) => tc.storyId === e.target.value);
                     if (matchingCases.length > 0) setSelectedTestCaseId(matchingCases[0].id);
                   }}
-                  options={mockStories.map((s) => ({
+                  options={allStories.map((s: import('../../../types').UserStory) => ({
                     value: s.id,
                     label: `${s.key}: ${s.title}`,
                   }))}
@@ -155,7 +164,7 @@ export const ScriptSynthesizerModal: React.FC<ScriptSynthesizerModalProps> = ({
                 <Select
                   value={selectedTestCaseId}
                   onChange={(e) => setSelectedTestCaseId(e.target.value)}
-                  options={relatedTestCases.map((tc) => ({
+                  options={relatedTestCases.map((tc: import('../../../types').TestCase) => ({
                     value: tc.id,
                     label: `${tc.key}: ${tc.title}`,
                   }))}
@@ -181,7 +190,7 @@ export const ScriptSynthesizerModal: React.FC<ScriptSynthesizerModalProps> = ({
                 </Badge>
               </div>
               <ul style={{ paddingLeft: '1.25rem', margin: 0, fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
-                {selectedStory.acceptanceCriteria.map((ac, idx) => (
+                {selectedStory?.acceptanceCriteria.map((ac: string, idx: number) => (
                   <li key={idx} style={{ marginBottom: '2px' }}>
                     {ac}
                   </li>
@@ -223,10 +232,15 @@ export const ScriptSynthesizerModal: React.FC<ScriptSynthesizerModalProps> = ({
         ) : (
           <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <AIResultContainer
-              title={`Synthesized Feature: ${previewScript.name}`}
-              confidence={96}
-              badgeText="BDD Synthesizer"
+              title={`${aiMode === 'real' ? '✦ Gemini AI' : '⚙ Local Engine'}: ${previewScript.name}`}
+              confidence={aiMode === 'real' ? 98 : 93}
+              badgeText={aiMode === 'real' ? 'Gemini AI • Live' : 'Local Mode'}
             >
+              {aiError && (
+                <div style={{ color: '#F59E0B', fontSize: '10px', marginBottom: '6px' }}>
+                  ⚠ AI error — using local engine: {aiError.slice(0, 80)}
+                </div>
+              )}
               <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
                 <span className="badge badge-primary">{previewScript.storyKey}</span>
                 <span className="badge badge-default">{previewScript.testCaseKey}</span>

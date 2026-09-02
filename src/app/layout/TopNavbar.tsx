@@ -18,7 +18,8 @@ import { useTheme } from '../providers/ThemeProvider';
 import { useProject } from '../providers/ProjectProvider';
 import { useCommandPalette } from '../providers/CommandPaletteProvider';
 import { useToast } from '../providers/ToastProvider';
-import { mockDashboardMetrics, mockUsers } from '../../mock';
+import { currentUser } from '../../mock';
+import { isAiEnabled } from '../../services/ai';
 
 interface TopNavbarProps {
   onOpenMobileMenu: () => void;
@@ -55,7 +56,8 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ onOpenMobileMenu }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const currentUser = mockUsers[0];
+  const currentUserData = currentUser;
+  const aiLive = isAiEnabled();
 
   return (
     <header
@@ -223,8 +225,38 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ onOpenMobileMenu }) => {
         </button>
       </div>
 
-      {/* Right Area: Theme Switch + Notifications + User Avatar */}
+      {/* Right Area: AI Status + Theme Switch + Notifications + User Avatar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        {/* AI Status Pill */}
+        <div
+          title={aiLive ? 'Gemini AI is active — generating real test cases' : 'No API key set — using local template engine'}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.35rem',
+            padding: '0.25rem 0.625rem',
+            borderRadius: 'var(--radius-full)',
+            backgroundColor: aiLive ? 'rgba(34, 197, 94, 0.12)' : 'rgba(251, 191, 36, 0.12)',
+            border: `1px solid ${aiLive ? 'rgba(34, 197, 94, 0.35)' : 'rgba(251, 191, 36, 0.35)'}`,
+            fontSize: '11px',
+            fontWeight: 700,
+            color: aiLive ? '#22C55E' : '#F59E0B',
+            letterSpacing: '0.02em',
+            cursor: 'default',
+            userSelect: 'none',
+            transition: 'all 0.3s ease',
+          }}
+        >
+          <div style={{
+            width: '6px',
+            height: '6px',
+            borderRadius: '50%',
+            backgroundColor: aiLive ? '#22C55E' : '#F59E0B',
+            boxShadow: aiLive ? '0 0 6px #22C55E' : '0 0 6px #F59E0B',
+            animation: aiLive ? 'pulse 2s infinite' : 'none',
+          }} />
+          {aiLive ? 'AI Live' : 'Local Mode'}
+        </div>
         {/* Theme Toggle */}
         <button
           onClick={toggleTheme}
@@ -286,25 +318,14 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ onOpenMobileMenu }) => {
                 <span className="badge badge-primary" style={{ fontSize: '10px' }}>4 New</span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {mockDashboardMetrics.recentActivity.map((act) => (
-                  <div
-                    key={act.id}
-                    style={{
-                      padding: '0.5rem',
-                      borderRadius: 'var(--radius-md)',
-                      backgroundColor: 'var(--bg-surface-hover)',
-                      fontSize: 'var(--text-xs)'
-                    }}
-                  >
-                    <div style={{ color: 'var(--text-primary)', fontWeight: 500, lineHeight: 1.4 }}>
-                      {act.title}
-                    </div>
-                    <div style={{ color: 'var(--text-muted)', marginTop: '4px', display: 'flex', justifyContent: 'space-between' }}>
-                      <span>{act.user}</span>
-                      <span>{act.time}</span>
-                    </div>
-                  </div>
-                ))}
+                <div style={{
+                  padding: '1.5rem 0.5rem',
+                  textAlign: 'center',
+                  fontSize: 'var(--text-xs)',
+                  color: 'var(--text-muted)',
+                }}>
+                  No recent activity yet. Generate test cases or create a story to get started.
+                </div>
               </div>
             </div>
           )}
