@@ -80,6 +80,110 @@ export const HelpPage: React.FC = () => {
           </div>
         </Card>
       </Section>
+
+      <Section title="4. Technical Architecture — End-to-End AI QA Flow" subtitle="How Verix connects Jira stories to executed, AI-healed automation scripts">
+        <div style={{ backgroundColor: 'var(--bg-app)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-subtle)', marginBottom: '1.5rem' }}>
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: '1rem' }}>
+            Verix is a <strong>full-stack AI QA platform</strong> that creates an unbroken chain from a product requirement to a passing, auditable automated test. In the production architecture, each step below is powered by a real service. In the current prototype, all AI steps are simulated with high-fidelity mock responses.
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {/* Step 1 */}
+            <div style={{ padding: '1rem', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-surface-hover)', borderLeft: '4px solid var(--accent-primary)' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--accent-primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '14px', flexShrink: 0 }}>1</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)', marginBottom: '0.5rem' }}>User Story (Jira)</div>
+                  <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginBottom: '0.5rem', lineHeight: 1.6 }}>Product Owner writes Acceptance Criteria in Jira. Verix ingests via REST API.</p>
+                  <div style={{ padding: '0.5rem', borderRadius: '4px', backgroundColor: 'var(--bg-app)', fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-muted)' }}>
+                    Example: "DBANK-104: User can export member data with toggle"
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 2 */}
+            <div style={{ padding: '1rem', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-surface-hover)', borderLeft: '4px solid var(--ai-primary)' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--ai-primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '14px', flexShrink: 0 }}>2</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)', marginBottom: '0.5rem' }}>AI AC → Test Case Synthesis</div>
+                  <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginBottom: '0.5rem', lineHeight: 1.6 }}>Gemini API reads ACs and generates Positive, Negative, Boundary, Edge & OWASP test cases.</p>
+                  <div style={{ padding: '0.5rem', borderRadius: '4px', backgroundColor: 'var(--bg-app)', fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-muted)' }}>
+                    TC-201 (Happy Path) | TC-202 (403 Forbidden) | TC-203 (Volume) | TC-204 (PII Masking)
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 3 */}
+            <div style={{ padding: '1rem', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-surface-hover)', borderLeft: '4px solid var(--accent-secondary)' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--accent-secondary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '14px', flexShrink: 0 }}>3</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)', marginBottom: '0.5rem' }}>BDD Script Generation</div>
+                  <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginBottom: '0.5rem', lineHeight: 1.6 }}>Verix auto-generates Gherkin .feature files + Playwright Page Object Model classes.</p>
+                  <div style={{ padding: '0.5rem', borderRadius: '4px', backgroundColor: 'var(--bg-app)', fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-muted)' }}>
+                    CLOUD204_Data_Export_Policy.feature + MemberPermissionsPage.java
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 4 */}
+            <div style={{ padding: '1rem', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-surface-hover)', borderLeft: '4px solid var(--warning-primary)' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--warning-primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '14px', flexShrink: 0 }}>4</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)', marginBottom: '0.5rem' }}>Playwright CI Executor</div>
+                  <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginBottom: '0.5rem', lineHeight: 1.6 }}>Scripts run in Azure DevOps pipeline. Live step telemetry streams back to Verix via WebSocket.</p>
+                  <div style={{ padding: '0.5rem', borderRadius: '4px', backgroundColor: 'var(--bg-app)', fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-muted)' }}>
+                    Chromium 127 | Headless | Viewport 1280x720 | Timeout 30s
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 5 */}
+            <div style={{ padding: '1rem', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-surface-hover)', borderLeft: '4px solid var(--success-primary)' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--success-primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '14px', flexShrink: 0 }}>5</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)', marginBottom: '0.5rem' }}>AI Self-Healing Engine</div>
+                  <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginBottom: '0.5rem', lineHeight: 1.6 }}>On locator failure, Gemini Vision scans DOM diff and proposes healed selectors with confidence scoring.</p>
+                  <div style={{ padding: '0.5rem', borderRadius: '4px', backgroundColor: 'var(--bg-app)', fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-muted)' }}>
+                    Broken: #toggle-export-data → Healed: [data-testid="member-export-toggle"] (98% confidence)
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 6 */}
+            <div style={{ padding: '1rem', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-surface-hover)', borderLeft: '4px solid var(--accent-primary)' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--accent-primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '14px', flexShrink: 0 }}>6</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)', marginBottom: '0.5rem' }}>ExtentReport PDF Export</div>
+                  <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginBottom: '0.5rem', lineHeight: 1.6 }}>Full audit-quality BDD report with step screenshots, pass/fail status, and AI healing log.</p>
+                  <div style={{ padding: '0.5rem', borderRadius: '4px', backgroundColor: 'var(--bg-app)', fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-muted)' }}>
+                    DBANK_104_AI_Healing_Audit.pdf (embedded evidence for compliance)
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <Card title="Tech Stack & Integrations">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
+            {['React + TypeScript', 'Vite', 'Google Gemini API', 'Playwright', 'Azure DevOps', 'Azure Static Web Apps', 'Jira REST API', 'Azure Cosmos DB', 'BDD / Gherkin', 'ExtentReports 5.1'].map((tech) => (
+              <span key={tech} style={{ padding: '0.35rem 0.75rem', borderRadius: '4px', backgroundColor: 'var(--bg-app)', fontSize: '11px', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)' }}>
+                {tech}
+              </span>
+            ))}
+          </div>
+        </Card>
+      </Section>
     </div>
   );
 };
