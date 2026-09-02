@@ -15,4 +15,4 @@ npm install
 npm run dev
 ```
 
-For team onboarding and module development standards, see [DEVELOPMENT_GUIDE.md](file:///Users/hrithiks/.gemini/antigravity-ide/scratch/verix/DEVELOPMENT_GUIDE.md).
+For team onboarding and module development standards, see [DEVELOPMENT_GUIDE.md](./DEVELOPMENT_GUIDE.md).

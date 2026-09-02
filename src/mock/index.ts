@@ -15,7 +15,7 @@ export const mockProjects: Project[] = [
     activeSprint: 'Sprint 12 (Q3 Release)',
     membersCount: 5,
     members: [
-      { id: 'acp-1', name: 'Hrithik D.', email: 'hrithik.d@acme.com', role: 'QA Lead', avatarInitials: 'HD' },
+      { id: 'acp-1', name: 'Alex M.', email: 'alex.m@acme.com', role: 'QA Lead', avatarInitials: 'AM' },
       { id: 'acp-2', name: 'Priya S.',   email: 'priya.s@acme.com',   role: 'QA Engineer', avatarInitials: 'PS' },
       { id: 'acp-3', name: 'Arun M.',    email: 'arun.m@acme.com',    role: 'SDET', avatarInitials: 'AM' },
       { id: 'acp-4', name: 'Nisha R.',   email: 'nisha.r@acme.com',   role: 'QA Engineer', avatarInitials: 'NR' },
@@ -37,7 +37,7 @@ export const mockProjects: Project[] = [
     members: [
       { id: 'ama-1', name: 'Kiran T.', email: 'kiran.t@acme.com', role: 'QA Lead', avatarInitials: 'KT' },
       { id: 'ama-2', name: 'Sara L.',  email: 'sara.l@acme.com',  role: 'SDET', avatarInitials: 'SL' },
-      { id: 'ama-3', name: 'David C.', email: 'david.c@acme.com', role: 'QA Engineer', avatarInitials: 'DC' },
+      { id: 'ama-3', name: 'Sam K.', email: 'sam.k@acme.com', role: 'QA Engineer', avatarInitials: 'SK' },
       { id: 'ama-4', name: 'Meera V.', email: 'meera.v@acme.com', role: 'Product Owner', avatarInitials: 'MV' },
     ],
     totalStories: 0,
@@ -51,9 +51,10 @@ export const mockProjects: Project[] = [
 // ─── Current user (used by TopNavbar) ─────────────────────────────────────────
 export const currentUser: User = {
   id: 'user-1',
-  name: 'Hrithik D.',
-  email: 'hrithik.d@acme.com',
-  role: 'QA Lead',
+  name: 'Alex M.',
+  email: 'alex.m@acme.com',
+  role: 'QA Executive',
+  avatarInitials: 'AM',
   assignedProjectIds: ['proj-1', 'proj-2'],
 };
 

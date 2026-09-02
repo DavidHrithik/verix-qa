@@ -13,7 +13,7 @@ Welcome to the **Verix** repository. This guide explains how to build your assig
 ### Run Locally
 ```bash
 # Navigate to the workspace directory
-cd /Users/hrithiks/.gemini/antigravity-ide/scratch/verix
+cd verix-qa
 
 # Install dependencies (already initialized)
 npm install

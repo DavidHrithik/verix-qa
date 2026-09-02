@@ -68,9 +68,9 @@ The **Projects Portfolio Module** is the foundational workspace registry of Veri
 3. **Comprehensive Team Member Management**:
    - Each project maintains a structured roster of engineers and stakeholders.
    - **Member Fields**:
-     - `name`: Full Name (e.g. `Hrithik D.`, auto-generates monogram initials)
+     - `name`: Full Name (e.g. `Alex M.`, auto-generates monogram initials)
      - `role`: Role assignment with color-coded tokens (`QA Lead`, `QA Engineer`, `SDET`, `Product Owner`, `Developer`)
-     - `email`: Work email address (e.g. `hrithik.d@acme-corp.com`)
+     - `email`: Work email address (e.g. `alex.m@acme-corp.com`)
      - `avatarInitials`: 2-letter uppercase initials
    - **Inline Member Editor**: Click **"Edit Details ✏️"** or click on the **Members** stat card to expand inline field editing, remove members, or add new teammates.
 
@@ -186,7 +186,7 @@ Each module owner works in an isolated branch:
 ### Development Commands
 ```bash
 # Clone & install
-git clone https://github.com/DavidHrithik/verix-qa.git
+git clone https://github.com/your-org/verix-qa.git
 cd verix-qa
 npm install
 
