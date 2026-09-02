@@ -92,7 +92,7 @@ const MemberModal: React.FC<MemberModalProps> = ({ isOpen, projectName, members:
   const handleAddMember = () => {
     if (!newName.trim()) return;
     const initials = getInitials(newName);
-    const email = newEmail.trim() || `${newName.toLowerCase().replace(/\s+/g, '.')}@smith-nephew.com`;
+    const email = newEmail.trim() || `${newName.toLowerCase().replace(/\s+/g, '.')}@acme.com`;
 
     setMembers(prev => [
       ...prev,
@@ -273,7 +273,7 @@ const MemberModal: React.FC<MemberModalProps> = ({ isOpen, projectName, members:
                         <input
                           type="email"
                           value={m.email || ''}
-                          placeholder="e.g. name@smith-nephew.com"
+                          placeholder="e.g. name@acme.com"
                           onChange={(e) => handleUpdateMemberField(m.id, 'email', e.target.value)}
                           style={{
                             background: 'var(--bg-input)',
@@ -449,7 +449,7 @@ const MemberModal: React.FC<MemberModalProps> = ({ isOpen, projectName, members:
               <input
                 type="email"
                 value={newEmail}
-                placeholder="e.g. sarah.c@smith-nephew.com"
+                placeholder="e.g. sarah.c@acme.com"
                 onChange={(e) => setNewEmail(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleAddMember(); }}
                 style={{
@@ -679,7 +679,7 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ isOpen, mode, project, onCl
             <input
               type="text"
               value={form.name}
-              placeholder="e.g. Smith & Nephew Cloud"
+              placeholder="e.g. Acme Cloud Platform"
               onChange={(e) => { setForm(f => ({ ...f, name: e.target.value })); setErrors(er => ({ ...er, name: '' })); }}
               style={inp(!!errors.name)}
             />

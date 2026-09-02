@@ -154,7 +154,7 @@ export const SettingsPage: React.FC = () => {
       color: '#38BDF8',
       icon: <Users size={16} />,
       steps: [
-        'Roll out to all S&N QA teams (Cloud, Anakin, Sports ENT, Biologics)',
+        'Roll out to all Acme QA teams (Cloud, Mobile, Web, Platform)',
         'Implement full 21 CFR Part 11 electronic signature workflow for test approvals',
         'Complete IQ/OQ/PQ validation lifecycle and produce validation summary report',
         'Integrate with S&N Product Lifecycle Management (PLM) system',
@@ -279,7 +279,7 @@ export const SettingsPage: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-surface-hover)' }}>
                 <div>
                   <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>Jira Cloud</div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Connected to workspace: smith-nephew.atlassian.net</div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Connected to workspace: acme.atlassian.net</div>
                 </div>
                 <span className="badge badge-passed">Connected</span>
               </div>

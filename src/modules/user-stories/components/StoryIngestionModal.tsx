@@ -127,7 +127,7 @@ export const StoryIngestionModal: React.FC<StoryIngestionModalProps> = ({
   }, [isOpen, initialTab]);
 
   // --- Jira Tab State ---
-  const [jiraDomain, setJiraDomain] = useState('smith-nephew.atlassian.net');
+  const [jiraDomain, setJiraDomain] = useState('acme.atlassian.net');
   const [jiraProjectKey, setJiraProjectKey] = useState(activeProject.key);
   const [isJiraFetched, setIsJiraFetched] = useState(false);
   const [selectedJiraKeys, setSelectedJiraKeys] = useState<string[]>([]);

@@ -4,12 +4,9 @@ import {
   LayoutDashboard,
   FolderKanban,
   Layers,
-  ShieldCheck,
   FileCode2,
-  Wand2,
   Cpu,
   CheckSquare,
-  FolderGit2,
   Settings,
   HelpCircle,
   ChevronLeft,
@@ -37,16 +34,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const activeTestCasesCount = mockTestCases.filter(t => t.projectId === activeProject.id).length;
   const activeTasksCount = mockTasks.filter(t => t.projectId === activeProject.id).length;
 
-  const navItems = [
+  type NavItem = { label: string; path: string; icon: any; badge?: string; isAi?: boolean };
+  const navItems: NavItem[] = [
     { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { label: 'Projects', path: '/projects', icon: FolderKanban, badge: String(projects.length) },
     { label: 'User Stories', path: '/user-stories', icon: Layers, badge: String(activeStoriesCount) },
-    { label: 'Coverage Bridge', path: '/coverage', icon: ShieldCheck },
     { label: 'Test Cases', path: '/test-cases', icon: FileCode2, badge: String(activeTestCasesCount) },
-    { label: 'Test Step AI', path: '/test-steps', icon: Wand2, isAi: true },
     { label: 'Automation', path: '/automation', icon: Cpu, badge: 'Active' },
     { label: 'Task Tracker', path: '/tasks', icon: CheckSquare, badge: String(activeTasksCount) },
-    { label: 'Test Repository', path: '/repository', icon: FolderGit2 },
   ];
 
   const bottomItems = [
