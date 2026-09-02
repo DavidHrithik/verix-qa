@@ -14,12 +14,82 @@ import {
   FileText,
   Download,
   Trash2,
+  ShieldCheck,
+  Activity,
 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
 import { Input } from '../../../components/ui/Input';
 import { AutomationScriptExtended } from '../types';
 import { exportHealingReport } from '../services/reportExportService';
+
+// ── Stability Score Gauge ────────────────────────────────────────────────────
+const getStabilityColor = (score: number) => {
+  if (score >= 90) return { fill: '#22c55e', track: 'rgba(34,197,94,0.15)', label: 'Stable' };
+  if (score >= 60) return { fill: '#f59e0b', track: 'rgba(245,158,11,0.15)', label: 'Unstable' };
+  return { fill: '#ef4444', track: 'rgba(239,68,68,0.15)', label: 'Flaky' };
+};
+
+const StabilityGauge: React.FC<{ score: number; size?: number }> = ({ score, size = 46 }) => {
+  const { fill, track, label } = getStabilityColor(score);
+  const r = (size - 6) / 2;
+  const circ = 2 * Math.PI * r;
+  const arc = circ * 0.75; // 270° sweep
+  const offset = arc - (score / 100) * arc;
+
+  return (
+    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }} title={`Stability: ${score}% — ${label}`}>
+      <svg width={size} height={size} style={{ transform: 'rotate(135deg)' }}>
+        {/* Track */}
+        <circle
+          cx={size / 2} cy={size / 2} r={r}
+          fill="none" stroke={track} strokeWidth={5}
+          strokeDasharray={`${arc} ${circ - arc}`}
+          strokeLinecap="round"
+        />
+        {/* Progress */}
+        <circle
+          cx={size / 2} cy={size / 2} r={r}
+          fill="none" stroke={fill} strokeWidth={5}
+          strokeDasharray={`${arc} ${circ - arc}`}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          style={{ transition: 'stroke-dashoffset 0.6s ease' }}
+        />
+      </svg>
+      <div style={{
+        position: 'absolute', inset: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        flexDirection: 'column',
+      }}>
+        <span style={{ fontSize: '11px', fontWeight: 700, color: fill, lineHeight: 1 }}>{score}</span>
+      </div>
+    </div>
+  );
+};
+
+// ── Run History Sparkline ─────────────────────────────────────────────────────
+const RunSparkline: React.FC<{ history?: { passed: boolean }[] }> = ({ history }) => {
+  if (!history || history.length === 0) return null;
+  const last = history.slice(-10);
+  return (
+    <div style={{ display: 'flex', gap: '2px', alignItems: 'center' }} title="Recent run history (oldest → newest)">
+      {last.map((r, i) => (
+        <div
+          key={i}
+          style={{
+            width: 5,
+            height: r.passed ? 14 : 8,
+            borderRadius: 2,
+            backgroundColor: r.passed ? '#22c55e' : '#ef4444',
+            opacity: 0.7 + (i / last.length) * 0.3,
+            transition: 'height 0.3s ease',
+          }}
+        />
+      ))}
+    </div>
+  );
+};
 
 interface ScriptCatalogProps {
   scripts: AutomationScriptExtended[];
@@ -214,6 +284,13 @@ export const ScriptCatalog: React.FC<ScriptCatalogProps> = ({
                   style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexShrink: 0 }}
                   onClick={(e) => e.stopPropagation()}
                 >
+                  {/* Stability Score Gauge */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                    <StabilityGauge score={script.stabilityScore ?? 100} />
+                    <div style={{ fontSize: '9px', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.02em' }}>STABILITY</div>
+                    <RunSparkline history={script.runHistory} />
+                  </div>
+
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ marginBottom: '2px' }}>
                       {script.lastRunStatus === 'Passed' ? (

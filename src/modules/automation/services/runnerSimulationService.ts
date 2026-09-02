@@ -1,4 +1,41 @@
-import { ExecutionLogItem, SimulationStep, FailureScenario } from '../types';
+import { ExecutionLogItem, SimulationStep, FailureScenario, RunHistoryEntry } from '../types';
+
+const RUN_HISTORY_MAX = 20; // rolling window
+
+/**
+ * Returns a 0–100 stability score based on the rolling run history.
+ * 100 = perfectly stable, 0 = never passes.
+ * Recency-weighted: more recent runs carry slightly more weight.
+ */
+export const computeStabilityScore = (history: RunHistoryEntry[]): number => {
+  if (!history || history.length === 0) return 100;
+  const total = history.length;
+  let weightedPassed = 0;
+  let totalWeight = 0;
+  history.forEach((entry, idx) => {
+    const weight = 1 + idx; // older entries lower weight, newer entries higher
+    totalWeight += weight;
+    if (entry.passed) weightedPassed += weight;
+  });
+  return Math.round((weightedPassed / totalWeight) * 100);
+};
+
+/**
+ * Appends a new run result to the rolling history (capped at RUN_HISTORY_MAX).
+ */
+export const appendRunHistory = (
+  existing: RunHistoryEntry[] = [],
+  passed: boolean,
+  durationMs?: number
+): RunHistoryEntry[] => {
+  const entry: RunHistoryEntry = {
+    runAt: new Date().toISOString(),
+    passed,
+    durationMs,
+  };
+  const updated = [...existing, entry];
+  return updated.slice(-RUN_HISTORY_MAX);
+};
 
 export interface StepExecutionResult {
   step: SimulationStep;

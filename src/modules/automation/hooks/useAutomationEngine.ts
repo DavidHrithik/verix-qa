@@ -11,6 +11,8 @@ import { initialAutomationScripts, mockFailureScenarios } from '../services/auto
 import {
   createInitialExecutionLogs,
   generateStepLogs,
+  computeStabilityScore,
+  appendRunHistory,
 } from '../services/runnerSimulationService';
 import { useToast } from '../../../app/providers/ToastProvider';
 
@@ -169,19 +171,21 @@ export const useAutomationEngine = () => {
 
           // Update script metrics in catalog
           setScripts((prev) =>
-            prev.map((s) =>
-              s.id === script.id
-                ? {
-                    ...s,
-                    lastRunStatus: 'Passed',
-                    status: forceHealed ? 'Healed' : 'Active',
-                    failureScenario: undefined,
-                    executionCount: s.executionCount + 1,
-                    lastExecutedAt: new Date().toISOString(),
-                    steps: currentStepList.map((st) => ({ ...st, status: 'passed' })),
-                  }
-                : s
-            )
+            prev.map((s) => {
+              if (s.id !== script.id) return s;
+              const newHistory = appendRunHistory(s.runHistory, true);
+              return {
+                ...s,
+                lastRunStatus: 'Passed',
+                status: forceHealed ? 'Healed' : 'Active',
+                failureScenario: undefined,
+                executionCount: s.executionCount + 1,
+                lastExecutedAt: new Date().toISOString(),
+                steps: currentStepList.map((st) => ({ ...st, status: 'passed' })),
+                runHistory: newHistory,
+                stabilityScore: computeStabilityScore(newHistory),
+              };
+            })
           );
 
           const finishTs = new Date().toISOString().split('T')[1].slice(0, 12);
@@ -228,17 +232,19 @@ export const useAutomationEngine = () => {
 
             // Update script status in catalog
             setScripts((prev) =>
-              prev.map((s) =>
-                s.id === script.id
-                  ? {
-                      ...s,
-                      lastRunStatus: 'Failed',
-                      status: 'Flaky',
-                      executionCount: s.executionCount + 1,
-                      lastExecutedAt: new Date().toISOString(),
-                    }
-                  : s
-              )
+              prev.map((s) => {
+                if (s.id !== script.id) return s;
+                const newHistory = appendRunHistory(s.runHistory, false);
+                return {
+                  ...s,
+                  lastRunStatus: 'Failed',
+                  status: 'Flaky',
+                  executionCount: s.executionCount + 1,
+                  lastExecutedAt: new Date().toISOString(),
+                  runHistory: newHistory,
+                  stabilityScore: computeStabilityScore(newHistory),
+                };
+              })
             );
 
             // Construct Self-Healing Proposal automatically
@@ -333,17 +339,19 @@ export const useAutomationEngine = () => {
           ]);
 
           setScripts((prev) =>
-            prev.map((s) =>
-              s.id === script.id
-                ? {
-                    ...s,
-                    lastRunStatus: 'Passed',
-                    status: 'Active',
-                    executionCount: s.executionCount + 1,
-                    lastExecutedAt: new Date().toISOString(),
-                  }
-                : s
-            )
+            prev.map((s) => {
+              if (s.id !== script.id) return s;
+              const newHistory = appendRunHistory(s.runHistory, true);
+              return {
+                ...s,
+                lastRunStatus: 'Passed',
+                status: 'Active',
+                executionCount: s.executionCount + 1,
+                lastExecutedAt: new Date().toISOString(),
+                runHistory: newHistory,
+                stabilityScore: computeStabilityScore(newHistory),
+              };
+            })
           );
 
           showToast('Suite Complete', `All ${subList.length} scenarios executed and verified passed!`, 'success');
@@ -426,17 +434,19 @@ export const useAutomationEngine = () => {
 
               // Update script status in catalog
               setScripts((prev) =>
-                prev.map((s) =>
-                  s.id === script.id
-                    ? {
-                        ...s,
-                        lastRunStatus: 'Failed',
-                        status: 'Flaky',
-                        executionCount: s.executionCount + 1,
-                        lastExecutedAt: new Date().toISOString(),
-                      }
-                    : s
-                )
+                prev.map((s) => {
+                  if (s.id !== script.id) return s;
+                  const newHistory = appendRunHistory(s.runHistory, false);
+                  return {
+                    ...s,
+                    lastRunStatus: 'Failed',
+                    status: 'Flaky',
+                    executionCount: s.executionCount + 1,
+                    lastExecutedAt: new Date().toISOString(),
+                    runHistory: newHistory,
+                    stabilityScore: computeStabilityScore(newHistory),
+                  };
+                })
               );
 
               // Construct Self-Healing Proposal automatically
