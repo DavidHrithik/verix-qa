@@ -19,7 +19,7 @@ import { useAIConfig } from '../../../app/providers/AIConfigProvider';
 import { useToast } from '../../../app/providers/ToastProvider';
 
 export type AutomationTab = 'catalog' | 'synthesizer' | 'studio' | 'runner' | 'healing-diff';
-const STORAGE_KEY_AUTOMATION = 'verix_automation_scripts_v4';
+const STORAGE_KEY_AUTOMATION = 'verix_automation_scripts_v5';
 
 export const useAutomationEngine = () => {
   const { showToast } = useToast();

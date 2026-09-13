@@ -29,7 +29,7 @@ import { useToast } from '../../../app/providers/ToastProvider';
 import { mockTestCases } from '../../../mock';
 import { TestCase } from '../../../types';
 
-const STORAGE_KEY_TEST_CASES = 'verix_test_cases_v3';
+const STORAGE_KEY_TEST_CASES = 'verix_test_cases_v4';
 
 export const TestCasesPage: React.FC = () => {
   const { activeProject } = useProject();
