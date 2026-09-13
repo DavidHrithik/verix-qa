@@ -120,47 +120,53 @@ export const SettingsPage: React.FC = () => {
   const roadmapPhases = [
     {
       phase: 'Phase 1',
-      label: 'Deploy & Connect',
+      label: 'Deploy & Go Live',
       timeline: 'Month 1–3',
+      timeEstimate: '~3 months',
       owner: 'Platform Engineering + QA Lead',
       color: '#10B981',
       icon: <Server size={16} />,
+      goal: 'Get the app running in a real cloud environment so the team can start using it.',
       steps: [
-        'Deploy Verix on Azure Static Web Apps (S&N tenant)',
-        'Connect real Jira Cloud REST API to sync live user stories',
-        'Wire up Azure Active Directory SSO for S&N employee login',
-        'Configure role-based access: QA Lead, SDET, Product Owner, Read-Only',
-        'Establish baseline audit log in Azure Cosmos DB',
+        'Host Verix on Azure Static Web Apps — the app goes live on a real URL, accessible to the whole QA team',
+        'Connect to a real Jira Cloud account so user stories automatically sync into Verix (no more copy-pasting)',
+        'Add login with company email (SSO) so every team member can sign in securely with one click',
+        'Set up user roles — QA Lead can approve things, SDETs can write tests, Product Owners can view progress',
+        'Store all test data and audit logs in Azure Cosmos DB so nothing is ever lost',
       ],
     },
     {
       phase: 'Phase 2',
-      label: 'AI Integration',
+      label: 'Plug In the AI Brain',
       timeline: 'Month 3–6',
+      timeEstimate: '~3 months',
       owner: 'AI/ML Team + SDET Team',
       color: '#818CF8',
       icon: <Cpu size={16} />,
+      goal: 'Replace the simulated AI with real Google Gemini calls and hook up a real test runner.',
       steps: [
-        'Integrate Google Gemini API (or Azure OpenAI) for live AC → Test Case synthesis',
-        'Connect real Playwright test runner via Azure DevOps pipeline webhook',
-        'Build real DOM snapshot capture pipeline for live self-healing analysis',
-        'Implement AI confidence scoring with real LLM token output',
-        'Produce first IQ/OQ validation package for regulatory review',
+        'Connect the live Google Gemini API — instead of mock AI responses, the app will genuinely read your Jira story and write real test cases in seconds',
+        'Hook up a real Playwright test runner via GitHub Actions / Azure DevOps — tests actually execute against the real product, not a simulation',
+        'Build a live DOM snapshot tool — when a UI element breaks, the AI takes a real screenshot, compares before/after, and auto-fixes the selector',
+        'AI confidence scores are real — based on actual LLM reasoning, not hardcoded numbers',
+        'Produce a validation document (IQ/OQ) proving the tool works reliably — needed for regulated industries',
       ],
     },
     {
       phase: 'Phase 3',
-      label: 'Scale & Govern',
+      label: 'Scale Across the Team',
       timeline: 'Month 6–12',
-      owner: 'QA CoE + Compliance Officer',
+      timeEstimate: '~6 months',
+      owner: 'QA Center of Excellence + Compliance',
       color: '#38BDF8',
       icon: <Users size={16} />,
+      goal: 'Expand to all QA teams, meet compliance requirements, and build executive reporting.',
       steps: [
-        'Roll out to all Acme QA teams (Cloud, Mobile, Web, Platform)',
-        'Implement full 21 CFR Part 11 electronic signature workflow for test approvals',
-        'Complete IQ/OQ/PQ validation lifecycle and produce validation summary report',
-        'Integrate with S&N Product Lifecycle Management (PLM) system',
-        'Build executive traceability dashboard: AC → Test Case → Automation → Release gate',
+        'Roll out to all QA squads (Web, Mobile, Cloud, Platform) — every team gets the same AI-powered workflow',
+        'Add electronic signatures for test approvals — when a QA Lead approves a test case, it is legally signed and timestamped (21 CFR Part 11 compliance)',
+        'Complete the full IQ/OQ/PQ validation package — this is the formal proof document required for use in medical device or regulated software projects',
+        'Connect to a Product Lifecycle Management (PLM) system so test coverage is visible at the product release level',
+        'Build an executive dashboard that shows the full chain: User Story → Test Case → Automation Run → Release Gate — one view to see if a release is safe to ship',
       ],
     },
   ];
@@ -438,7 +444,7 @@ export const SettingsPage: React.FC = () => {
               marginTop: '0.5rem',
             }}
           >
-            Verix Regulatory Framework v1.0 · S&N Internal QA Platform · Not for clinical patient use · All AI suggestions require human approval
+            Verix Regulatory Framework v1.0 · Internal QA Platform · Not for clinical patient use · All AI suggestions require human approval
           </div>
         </div>
       )}
@@ -462,17 +468,17 @@ export const SettingsPage: React.FC = () => {
             <Rocket size={24} style={{ color: '#10B981', flexShrink: 0, marginTop: '2px' }} />
             <div>
               <div style={{ fontWeight: 700, fontSize: 'var(--text-md)', color: 'var(--text-primary)', marginBottom: '0.4rem' }}>
-                Path to Production — 12-Month Roadmap
+                Path to Production — 12-Month Deployment Plan
               </div>
               <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
-                Verix transitions from a fully functional prototype to a production-grade, S&N-integrated QA platform in three structured phases.
-                The current prototype validates all core concepts — AI test generation, self-healing automation, BDD execution, and PDF reporting.
-                Production deployment connects real data sources (Jira, Playwright, Azure) and completes the regulatory validation lifecycle.
+                Right now, Verix is a <strong>fully working prototype</strong> — every feature you see (AI test generation, self-healing, BDD automation, PDF reports) is built and functional.
+                The next step is connecting it to real systems and deploying it for an actual QA team to use every day.
+                We have a clear 12-month plan split into 3 phases, each with a specific goal and who is responsible.
               </p>
             </div>
           </div>
 
-          {/* Current State */}
+          {/* Current State Banner */}
           <div
             style={{
               borderRadius: 'var(--radius-lg)',
@@ -482,22 +488,25 @@ export const SettingsPage: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               gap: '1rem',
+              flexWrap: 'wrap',
             }}
           >
-            <GitBranch size={20} style={{ color: '#818CF8' }} />
+            <GitBranch size={20} style={{ color: '#818CF8', flexShrink: 0 }} />
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: '#818CF8' }}>
-                NOW — Prototype (Hackathon Demo)
+                🟢 Where We Are Now — Hackathon Prototype
               </div>
-              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
-                React + TypeScript + Vite · Fully functional UI · All AI features simulated · Published on GitHub · 0 build errors
+              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginTop: '0.3rem', lineHeight: 1.5 }}>
+                The app is built with <strong>React + TypeScript + Vite</strong>. All AI features work end-to-end in the UI using
+                simulated (mock) data — so judges can see the complete workflow without needing live API keys or a real CI server.
+                0 build errors · Published on GitHub · Ready to demo.
               </div>
             </div>
             <span
               style={{
                 fontSize: '11px',
                 fontWeight: 700,
-                padding: '3px 12px',
+                padding: '4px 14px',
                 borderRadius: '999px',
                 backgroundColor: 'rgba(99,102,241,0.15)',
                 color: '#818CF8',
@@ -505,7 +514,7 @@ export const SettingsPage: React.FC = () => {
                 whiteSpace: 'nowrap',
               }}
             >
-              ✓ Complete
+              ✓ Done
             </span>
           </div>
 
@@ -521,12 +530,13 @@ export const SettingsPage: React.FC = () => {
                   padding: '1.25rem 1.5rem',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                {/* Phase Header */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <div
                       style={{
-                        width: '32px',
-                        height: '32px',
+                        width: '36px',
+                        height: '36px',
                         borderRadius: '50%',
                         backgroundColor: `${phase.color}20`,
                         border: `2px solid ${phase.color}60`,
@@ -544,7 +554,7 @@ export const SettingsPage: React.FC = () => {
                         {phase.phase} — {phase.label}
                       </div>
                       <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                        Owner: {phase.owner}
+                        {phase.owner} · {phase.timeEstimate}
                       </div>
                     </div>
                   </div>
@@ -564,15 +574,71 @@ export const SettingsPage: React.FC = () => {
                   </span>
                 </div>
 
-                <ul style={{ margin: 0, paddingLeft: '1.2rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                {/* Goal line */}
+                <div style={{
+                  fontSize: 'var(--text-xs)',
+                  fontWeight: 600,
+                  color: phase.color,
+                  marginBottom: '0.65rem',
+                  paddingLeft: '0.25rem',
+                  fontStyle: 'italic',
+                }}>
+                  🎯 Goal: {phase.goal}
+                </div>
+
+                {/* Steps */}
+                <ul style={{ margin: 0, paddingLeft: '1.2rem', display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
                   {phase.steps.map((step, j) => (
-                    <li key={j} style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                    <li key={j} style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
                       {step}
                     </li>
                   ))}
                 </ul>
               </div>
             ))}
+          </div>
+
+          {/* Total Timeline Summary */}
+          <div
+            style={{
+              borderRadius: 'var(--radius-lg)',
+              border: '1px solid var(--border-subtle)',
+              backgroundColor: 'var(--bg-surface-hover)',
+              padding: '1rem 1.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '1rem',
+              flexWrap: 'wrap',
+            }}
+          >
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
+                ⏱ Total Time from Prototype → Full Production
+              </div>
+              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
+                Assumes 2 SDETs + 1 Platform Engineer dedicated to Verix integration
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+              {[
+                { label: 'Phase 1', time: '3 months', color: '#10B981' },
+                { label: 'Phase 2', time: '3 months', color: '#818CF8' },
+                { label: 'Phase 3', time: '6 months', color: '#38BDF8' },
+                { label: 'Total', time: '~12 months', color: '#F59E0B' },
+              ].map((t, i) => (
+                <div key={i} style={{
+                  textAlign: 'center',
+                  padding: '0.4rem 0.85rem',
+                  borderRadius: 'var(--radius-md)',
+                  backgroundColor: `${t.color}12`,
+                  border: `1px solid ${t.color}30`,
+                }}>
+                  <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600 }}>{t.label}</div>
+                  <div style={{ fontSize: 'var(--text-sm)', fontWeight: 800, color: t.color }}>{t.time}</div>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div
@@ -584,7 +650,7 @@ export const SettingsPage: React.FC = () => {
               borderTop: '1px solid var(--border-subtle)',
             }}
           >
-            Roadmap subject to S&N IT governance approval · Timeline estimates assume 2 dedicated SDETs + 1 Platform Engineer
+            Timeline estimates are indicative · Subject to team capacity and integration complexity
           </div>
         </div>
       )}
