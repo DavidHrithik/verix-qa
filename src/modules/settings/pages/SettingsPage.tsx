@@ -28,7 +28,6 @@ import {
   Scale,
   FileCheck2,
   HardDrive,
-  Sliders,
   ChevronRight,
 } from 'lucide-react';
 import { PageHeader } from '../../../components/layout/PageHeader';
@@ -48,36 +47,9 @@ export const SettingsPage: React.FC = () => {
   const { config, setConfig, isConfigured } = useAIConfig();
   const [activeTab, setActiveTab] = useState('general');
 
-  // Interactive controls for Path to Production
-  const [phaseFilter, setPhaseFilter] = useState<'all' | 'Phase 1' | 'Phase 2' | 'Phase 3'>('all');
-  const [activeTeamView, setActiveTeamView] = useState<'roles' | 'breakdown'>('roles');
-  const [checkedMilestones, setCheckedMilestones] = useState<Record<string, boolean>>({
-    'm1': true,
-    'm2': true,
-    'm3': true,
-    'm4': false,
-    'm5': false,
-    'm6': false,
-    'm7': false,
-    'm8': false,
-    'm9': false,
-  });
-
   // Interactive controls for Regulatory & Compliance
   const [auditStatus, setAuditStatus] = useState<'idle' | 'running' | 'passed'>('idle');
   const [auditProgress, setAuditProgress] = useState(0);
-
-  const toggleMilestone = (id: string) => {
-    setCheckedMilestones((prev) => {
-      const next = !prev[id];
-      showToast(
-        next ? 'Milestone Checked' : 'Milestone Unchecked',
-        next ? 'Marked as completed in roadmap tracker.' : 'Marked as pending review.',
-        'info'
-      );
-      return { ...prev, [id]: next };
-    });
-  };
 
   const runAuditSimulation = () => {
     if (auditStatus === 'running') return;
@@ -170,62 +142,59 @@ export const SettingsPage: React.FC = () => {
     },
   ];
 
-  // Path to Production Phases (Explained in Plain Layman Terms)
   const roadmapPhases = [
     {
       phase: 'Phase 1',
-      label: 'Company Cloud & Jira Integration',
-      timeline: 'Months 1–3',
-      timeEstimate: 'Months 1–3 (Quarter 1)',
-      owner: '1 Platform Engineer + 2 SDETs',
+      label: 'Deploy & Go Live',
+      timeline: 'Month 1–3',
+      timeEstimate: '~3 months',
+      owner: 'Platform Engineering + QA Lead',
       color: '#10B981',
-      icon: <Server size={18} />,
-      goal: 'Host Verix on secure company cloud servers, set up easy single company login, and connect Jira so user stories flow in automatically.',
-      milestones: [
-        { id: 'm1', title: 'Host Verix on secure company cloud servers with single company login (SSO)', owner: '1 Platform Engineer' },
-        { id: 'm2', title: 'Connect directly to Jira so user stories and acceptance criteria sync automatically', owner: '1 SDET' },
-        { id: 'm3', title: 'Set up a secure central database to save all test results, screenshots, and logs safely', owner: '1 Platform Engineer + 1 SDET' },
+      icon: <Server size={16} />,
+      goal: 'Get the app running in a real cloud environment so the team can start using it.',
+      steps: [
+        'Host Verix on Azure Static Web Apps — the app goes live on a real URL, accessible to the whole QA team',
+        'Connect to a real Jira Cloud account so user stories automatically sync into Verix (no more copy-pasting)',
+        'Add login with company email (SSO) so every team member can sign in securely with one click',
+        'Set up user roles — QA Lead can approve things, SDETs can write tests, Product Owners can view progress',
+        'Store all test data and audit logs in Azure Cosmos DB so nothing is ever lost',
       ],
     },
     {
       phase: 'Phase 2',
-      label: 'Live AI, Automated Test Runs & Self-Healing',
-      timeline: 'Months 3–6',
-      timeEstimate: 'Months 3–6 (Quarter 2)',
-      owner: '1 Platform Engineer + 3 SDETs',
+      label: 'Plug In the AI Brain',
+      timeline: 'Month 3–6',
+      timeEstimate: '~3 months',
+      owner: 'AI/ML Team + SDET Team',
       color: '#818CF8',
-      icon: <Cpu size={18} />,
-      goal: 'Connect the private company AI engine, run tests automatically whenever code changes, and turn on AI self-healing to fix broken tests.',
-      milestones: [
-        { id: 'm4', title: 'Connect secure enterprise AI to generate dependable test steps without guessing', owner: '1 Platform Engineer' },
-        { id: 'm5', title: 'Automatically run full test suites every time developers write or submit new code', owner: '1 Platform Engineer + 1 SDET' },
-        { id: 'm6', title: 'Turn on Self-Healing: when screen buttons change, AI auto-fixes broken tests with 1 click', owner: '2 SDETs' },
+      icon: <Cpu size={16} />,
+      goal: 'Replace the simulated AI with live Enterprise AI calls (Cloud API or Local LLM) and hook up a real test runner.',
+      steps: [
+        'Connect your live Enterprise AI API — instead of mock AI responses, the app will genuinely read your Jira story and write real test cases in seconds',
+        'Hook up a real Playwright test runner via GitHub Actions / Azure DevOps — tests actually execute against the real product, not a simulation',
+        'Build a live DOM snapshot tool — when a UI element breaks, the AI takes a real screenshot, compares before/after, and auto-fixes the selector',
+        'AI confidence scores are real — based on actual LLM reasoning, not hardcoded numbers',
+        'Produce a validation document (IQ/OQ) proving the tool works reliably — needed for regulated industries',
       ],
     },
     {
       phase: 'Phase 3',
-      label: 'Medical Compliance & Company-Wide Rollout',
-      timeline: 'Months 6–12',
-      timeEstimate: 'Months 6–12 (Quarters 3–4)',
-      owner: 'All 5 SDETs + 1 Platform Engineer',
+      label: 'Scale Across the Team',
+      timeline: 'Month 6–12',
+      timeEstimate: '~6 months',
+      owner: 'QA Center of Excellence + Compliance',
       color: '#38BDF8',
-      icon: <Users size={18} />,
-      goal: 'Complete official medical software qualification (IQ/OQ/PQ), add electronic approvals, and expand Verix to all product teams.',
-      milestones: [
-        { id: 'm7', title: 'Add FDA-compliant electronic signatures so managers can officially approve test runs', owner: '1 SDET + 1 Platform Engineer' },
-        { id: 'm8', title: 'Run formal qualification testing (IQ/OQ/PQ) to prove the tool is 100% reliable for medical software', owner: 'All 5 SDETs' },
-        { id: 'm9', title: 'Roll out Verix to all product squads with easy executive dashboards showing live quality scores', owner: 'Entire 6-Person Team' },
+      icon: <Users size={16} />,
+      goal: 'Expand to all QA teams, meet compliance requirements, and build executive reporting.',
+      steps: [
+        'Roll out to all QA squads (Web, Mobile, Cloud, Platform) — every team gets the same AI-powered workflow',
+        'Add electronic signatures for test approvals — when a QA Lead approves a test case, it is legally signed and timestamped (21 CFR Part 11 compliance)',
+        'Complete the full IQ/OQ/PQ validation package — this is the formal proof document required for use in medical device or regulated software projects',
+        'Connect to a Product Lifecycle Management (PLM) system so test coverage is visible at the product release level',
+        'Build an executive dashboard that shows the full chain: User Story → Test Case → Automation Run → Release Gate — one view to see if a release is safe to ship',
       ],
     },
   ];
-
-  const filteredPhases = phaseFilter === 'all'
-    ? roadmapPhases
-    : roadmapPhases.filter((p) => p.phase === phaseFilter);
-
-  const completedCount = Object.values(checkedMilestones).filter(Boolean).length;
-  const totalMilestones = Object.keys(checkedMilestones).length;
-  const progressPercent = Math.round((completedCount / totalMilestones) * 100);
 
   return (
     <div className="animate-fade-in">
@@ -606,11 +575,12 @@ export const SettingsPage: React.FC = () => {
             <Rocket size={24} style={{ color: '#10B981', flexShrink: 0, marginTop: '2px' }} />
             <div>
               <div style={{ fontWeight: 700, fontSize: 'var(--text-md)', color: 'var(--text-primary)', marginBottom: '0.4rem' }}>
-                Path to Production — 12-Month Rollout Plan
+                Path to Production — 12-Month Deployment Plan
               </div>
               <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
-                A clear, step-by-step 3-phase plan to take Verix from today's working prototype into daily company-wide use across Smith & Nephew.
-                Delivered by a dedicated team of <strong>1 Platform Engineer + 5 Senior Test Engineers (SDETs)</strong> over 12 months.
+                Right now, Verix is a <strong>fully working prototype</strong> — every feature you see (AI test generation, self-healing, BDD automation, PDF reports) is built and functional.
+                The next step is connecting it to real systems and deploying it for an actual QA team to use every day.
+                We have a clear 12-month plan split into 3 phases, each with a specific goal and who is responsible.
               </p>
             </div>
           </div>
@@ -631,10 +601,11 @@ export const SettingsPage: React.FC = () => {
             <GitBranch size={20} style={{ color: '#818CF8', flexShrink: 0 }} />
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: '#818CF8' }}>
-                🟢 Current Status: Working Prototype Ready
+                🟢 Where We Are Now — Hackathon Prototype
               </div>
               <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginTop: '0.3rem', lineHeight: 1.5 }}>
-                Everything you see in Verix today is fully operational: reading user stories, generating automated test steps, running live browser tests, auto-repairing broken buttons, and exporting audit reports. The next step is moving it to company servers and connecting live tools.
+                The app is built with <strong>React + TypeScript + Vite</strong>. All AI features work end-to-end in the UI using
+                simulated (mock) data.
               </div>
             </div>
             <span
@@ -649,205 +620,13 @@ export const SettingsPage: React.FC = () => {
                 whiteSpace: 'nowrap',
               }}
             >
-              ✓ Prototype Working
+              ✓ Done
             </span>
-          </div>
-
-          {/* Team Capacity & Named Ownership Card */}
-          <div
-            style={{
-              borderRadius: 'var(--radius-lg)',
-              border: '1px solid rgba(56,189,248,0.3)',
-              backgroundColor: 'rgba(56,189,248,0.04)',
-              padding: '1.25rem 1.5rem',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '1rem',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <Users size={20} style={{ color: '#38BDF8' }} />
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
-                    Dedicated Team & Clear Responsibilities
-                  </div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                    Team Allocation: 6 Dedicated Engineers (1 Platform Engineer + 5 Senior Test Engineers / SDETs)
-                  </div>
-                </div>
-              </div>
-
-              {/* View toggle */}
-              <div style={{ display: 'flex', gap: '0.25rem', backgroundColor: 'var(--bg-surface)', padding: '3px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
-                <button
-                  onClick={() => setActiveTeamView('roles')}
-                  style={{
-                    padding: '3px 10px',
-                    fontSize: '11px',
-                    fontWeight: 600,
-                    borderRadius: 'var(--radius-sm)',
-                    border: 'none',
-                    cursor: 'pointer',
-                    backgroundColor: activeTeamView === 'roles' ? 'var(--accent-primary)' : 'transparent',
-                    color: activeTeamView === 'roles' ? '#FFFFFF' : 'var(--text-secondary)',
-                  }}
-                >
-                  Role Breakdown
-                </button>
-                <button
-                  onClick={() => setActiveTeamView('breakdown')}
-                  style={{
-                    padding: '3px 10px',
-                    fontSize: '11px',
-                    fontWeight: 600,
-                    borderRadius: 'var(--radius-sm)',
-                    border: 'none',
-                    cursor: 'pointer',
-                    backgroundColor: activeTeamView === 'breakdown' ? 'var(--accent-primary)' : 'transparent',
-                    color: activeTeamView === 'breakdown' ? '#FFFFFF' : 'var(--text-secondary)',
-                  }}
-                >
-                  Who Does What
-                </button>
-              </div>
-            </div>
-
-            {/* Role Matrix View */}
-            {activeTeamView === 'roles' ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
-                {/* 1 Platform Engineer */}
-                <div style={{
-                  padding: '1rem',
-                  borderRadius: 'var(--radius-md)',
-                  backgroundColor: 'var(--bg-surface)',
-                  border: '1px solid var(--border-subtle)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.5rem',
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Server size={16} color="#818CF8" />
-                      <span style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
-                        1x Platform / Cloud Engineer
-                      </span>
-                    </div>
-                    <span className="badge badge-primary">Cloud & Infra Lead</span>
-                  </div>
-                  <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '11px', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.35rem', lineHeight: 1.5 }}>
-                    <li>Hosts Verix on secure company cloud servers with easy single company login (SSO)</li>
-                    <li>Connects company-approved AI securely so proprietary code and patient data stay 100% private</li>
-                    <li>Sets up automated build systems so tests run in the background whenever developers push code</li>
-                    <li>Monitors system health, server uptime, backups, and security access controls</li>
-                  </ul>
-                </div>
-
-                {/* 5 SDETs */}
-                <div style={{
-                  padding: '1rem',
-                  borderRadius: 'var(--radius-md)',
-                  backgroundColor: 'var(--bg-surface)',
-                  border: '1px solid var(--border-subtle)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.5rem',
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Cpu size={16} color="#10B981" />
-                      <span style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
-                        5x Senior Test Engineers (SDETs)
-                      </span>
-                    </div>
-                    <span className="badge badge-passed">Testing & Quality Squad</span>
-                  </div>
-                  <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '11px', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.35rem', lineHeight: 1.5 }}>
-                    <li>Builds and maintains automated tests that click through and verify user flows like a real user</li>
-                    <li>Links Jira user requirements directly to test cases so nothing ever gets released untested</li>
-                    <li>Reviews self-healing AI fixes to ensure auto-repaired buttons and tests are 100% correct</li>
-                    <li>Prepares formal verification proofs (IQ/OQ/PQ) and audit records required for medical software compliance</li>
-                  </ul>
-                </div>
-              </div>
-            ) : (
-              <div style={{
-                backgroundColor: 'var(--bg-surface)',
-                padding: '0.85rem 1rem',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border-subtle)',
-                fontSize: 'var(--text-xs)',
-                color: 'var(--text-secondary)',
-                lineHeight: 1.6,
-              }}>
-                <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.3rem' }}>
-                  Team Distribution (6 Dedicated Engineers):
-                </div>
-                <div>• <strong>Test Engineers 1 & 2 (SDETs):</strong> Write core automated test scripts and verify AI auto-repair suggestions.</div>
-                <div>• <strong>Test Engineer 3 (SDET):</strong> Links Jira user stories so tests update automatically when requirements change.</div>
-                <div>• <strong>Test Engineer 4 (SDET):</strong> Checks visual screens across Chrome, Edge, and Safari, and generates test reports.</div>
-                <div>• <strong>Test Engineer 5 (SDET):</strong> Handles regulatory audit records, digital sign-offs, and compliance verification.</div>
-                <div>• <strong>Platform Engineer:</strong> Manages secure cloud servers, company login setup, and private AI data connections.</div>
-              </div>
-            )}
-          </div>
-
-          {/* Interactive Phase Filter & Progress Bar */}
-          <div style={{
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--border-subtle)',
-            backgroundColor: 'var(--bg-surface)',
-            padding: '1rem 1.25rem',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.75rem',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Sliders size={16} style={{ color: 'var(--accent-primary)' }} />
-                <span style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
-                  Interactive Rollout Tracker ({completedCount}/{totalMilestones} Milestones Completed · {progressPercent}%)
-                </span>
-              </div>
-
-              {/* Filter Tabs */}
-              <div style={{ display: 'flex', gap: '0.35rem' }}>
-                {(['all', 'Phase 1', 'Phase 2', 'Phase 3'] as const).map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => setPhaseFilter(p)}
-                    style={{
-                      padding: '4px 10px',
-                      fontSize: '11px',
-                      fontWeight: 600,
-                      borderRadius: 'var(--radius-sm)',
-                      border: '1px solid',
-                      borderColor: phaseFilter === p ? 'var(--accent-primary)' : 'var(--border-subtle)',
-                      backgroundColor: phaseFilter === p ? 'var(--accent-primary)' : 'transparent',
-                      color: phaseFilter === p ? '#FFFFFF' : 'var(--text-secondary)',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {p === 'all' ? 'All Phases' : p}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Overall Progress Bar */}
-            <div style={{ width: '100%', height: '6px', borderRadius: '999px', backgroundColor: 'var(--bg-surface-hover)', overflow: 'hidden' }}>
-              <div style={{
-                width: `${progressPercent}%`,
-                height: '100%',
-                backgroundColor: '#10B981',
-                transition: 'width 0.25s ease',
-              }} />
-            </div>
           </div>
 
           {/* Phase Cards */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-            {filteredPhases.map((phase, i) => (
+            {roadmapPhases.map((phase, i) => (
               <div
                 key={i}
                 style={{
@@ -881,7 +660,7 @@ export const SettingsPage: React.FC = () => {
                         {phase.phase} — {phase.label}
                       </div>
                       <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                        Team: {phase.owner} · Timeline: {phase.timeEstimate}
+                        {phase.owner} · {phase.timeEstimate}
                       </div>
                     </div>
                   </div>
@@ -906,114 +685,63 @@ export const SettingsPage: React.FC = () => {
                   fontSize: 'var(--text-xs)',
                   fontWeight: 600,
                   color: phase.color,
-                  marginBottom: '0.85rem',
+                  marginBottom: '0.65rem',
                   paddingLeft: '0.25rem',
+                  fontStyle: 'italic',
                 }}>
                   🎯 Goal: {phase.goal}
                 </div>
 
-                {/* Interactive Milestones Checklist */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {phase.milestones.map((milestone) => {
-                    const isDone = !!checkedMilestones[milestone.id];
-                    return (
-                      <div
-                        key={milestone.id}
-                        onClick={() => toggleMilestone(milestone.id)}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '0.6rem 0.85rem',
-                          borderRadius: 'var(--radius-md)',
-                          backgroundColor: 'var(--bg-surface)',
-                          border: `1px solid ${isDone ? `${phase.color}50` : 'var(--border-subtle)'}`,
-                          cursor: 'pointer',
-                          gap: '0.75rem',
-                          transition: 'all 0.15s ease',
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                          <input
-                            type="checkbox"
-                            checked={isDone}
-                            onChange={() => {}} // Handled by parent div
-                            style={{
-                              cursor: 'pointer',
-                              width: '16px',
-                              height: '16px',
-                              accentColor: phase.color,
-                            }}
-                          />
-                          <span style={{
-                            fontSize: 'var(--text-xs)',
-                            color: isDone ? 'var(--text-primary)' : 'var(--text-secondary)',
-                            fontWeight: isDone ? 600 : 400,
-                          }}>
-                            {milestone.title}
-                          </span>
-                        </div>
-                        <span style={{
-                          fontSize: '10px',
-                          fontWeight: 600,
-                          padding: '2px 8px',
-                          borderRadius: 'var(--radius-sm)',
-                          backgroundColor: `${phase.color}15`,
-                          color: phase.color,
-                          whiteSpace: 'nowrap',
-                        }}>
-                          {milestone.owner}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
+                {/* Steps */}
+                <ul style={{ margin: 0, paddingLeft: '1.2rem', display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                  {phase.steps.map((step, j) => (
+                    <li key={j} style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                      {step}
+                    </li>
+                  ))}
+                </ul>
               </div>
             ))}
           </div>
 
-          {/* Quantified Business & QA Impact Card */}
+          {/* Total Timeline Summary */}
           <div
             style={{
               borderRadius: 'var(--radius-lg)',
               border: '1px solid var(--border-subtle)',
               backgroundColor: 'var(--bg-surface-hover)',
-              padding: '1.25rem 1.5rem',
+              padding: '1rem 1.5rem',
               display: 'flex',
-              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'space-between',
               gap: '1rem',
+              flexWrap: 'wrap',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
-                  ⏱ 12-Month Projected Value & Speed
-                </div>
-                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
-                  Realistic expected results for our dedicated 6-person engineering team (1 Platform Engineer + 5 SDETs):
-                </div>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
+                ⏱ Total Time from Prototype → Full Production
               </div>
-              <span className="badge badge-passed">High Impact (Rubric #1)</span>
+              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
+                Assumes 5 SDETs + 1 Platform Engineer dedicated to Verix integration
+              </div>
             </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
               {[
-                { label: 'Phase 1 Delivery', value: '3 Months', sub: 'Cloud & Jira Connected', color: '#10B981' },
-                { label: 'Phase 2 Delivery', value: '3 Months', sub: 'AI & Auto-Healing Live', color: '#818CF8' },
-                { label: 'Phase 3 Rollout', value: '6 Months', sub: 'Full Compliance & Scale', color: '#38BDF8' },
-                { label: 'Maintenance Saved', value: '72% Less Time', sub: 'AI fixes broken buttons', color: '#F59E0B' },
-                { label: 'Release Speed', value: '3.4x Faster', sub: 'Tests run on every update', color: '#10B981' },
+                { label: 'Phase 1', time: '3 months', color: '#10B981' },
+                { label: 'Phase 2', time: '3 months', color: '#818CF8' },
+                { label: 'Phase 3', time: '6 months', color: '#38BDF8' },
+                { label: 'Total', time: '~12 months', color: '#F59E0B' },
               ].map((t, i) => (
                 <div key={i} style={{
                   textAlign: 'center',
-                  padding: '0.6rem 0.85rem',
+                  padding: '0.4rem 0.85rem',
                   borderRadius: 'var(--radius-md)',
-                  backgroundColor: 'var(--bg-surface)',
+                  backgroundColor: `${t.color}12`,
                   border: `1px solid ${t.color}30`,
                 }}>
                   <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600 }}>{t.label}</div>
-                  <div style={{ fontSize: 'var(--text-md)', fontWeight: 800, color: t.color, margin: '2px 0' }}>{t.value}</div>
-                  <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>{t.sub}</div>
+                  <div style={{ fontSize: 'var(--text-sm)', fontWeight: 800, color: t.color }}>{t.time}</div>
                 </div>
               ))}
             </div>
@@ -1028,7 +756,7 @@ export const SettingsPage: React.FC = () => {
               borderTop: '1px solid var(--border-subtle)',
             }}
           >
-            Smith & Nephew Production Plan · Dedicated Team: 1 Platform Engineer + 5 Senior Test Engineers · 12-Month Phased Delivery
+            Timeline estimates are indicative · Subject to team capacity and integration complexity
           </div>
         </div>
       )}
