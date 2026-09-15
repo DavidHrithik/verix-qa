@@ -33,8 +33,8 @@ export const HelpPage: React.FC = () => {
       step: '2',
       icon: <Sparkles size={20} />,
       title: 'AI Generates Test Cases',
-      subtitle: 'Powered by: Google Gemini API',
-      desc: 'Verix sends the Acceptance Criteria to the Gemini AI model. It reads them and automatically writes a full set of test cases — covering Happy Path, Edge Cases, Security (OWASP), Boundary, and Negative scenarios.',
+      subtitle: 'Powered by: Enterprise AI Engine',
+      desc: 'Verix sends the Acceptance Criteria to the connected AI model. It reads them and automatically writes a full set of test cases — covering Happy Path, Edge Cases, Security (OWASP), Boundary, and Negative scenarios.',
       output: 'Output: 6–12 structured test cases with steps',
       time: '~2 min',
       color: '#10B981',
@@ -63,7 +63,7 @@ export const HelpPage: React.FC = () => {
       step: '5',
       icon: <Zap size={20} />,
       title: 'AI Self-Healing on Failure',
-      subtitle: 'Engine: Gemini Vision + DOM Analysis',
+      subtitle: 'Engine: Vision & DOM Semantic Reasoning',
       desc: 'If a test fails because a UI element moved or was renamed (e.g. a button ID changed), the AI Self-Healing Engine automatically detects the broken locator, scans the current page DOM, and suggests the fixed selector with a confidence score.',
       output: 'Output: Healed selector with 91%+ success rate',
       time: '~28 sec',
@@ -83,7 +83,7 @@ export const HelpPage: React.FC = () => {
 
   const techStack = [
     { layer: 'Frontend', tech: 'React + TypeScript + Vite', desc: 'The web app you are looking at right now', color: '#38BDF8' },
-    { layer: 'AI Engine', tech: 'Google Gemini API', desc: 'Reads stories → writes test cases → heals broken locators', color: '#10B981' },
+    { layer: 'AI Engine', tech: 'Universal Enterprise AI Engine', desc: 'Reads stories → writes test cases → heals broken locators', color: '#10B981' },
     { layer: 'Test Runner', tech: 'Playwright', desc: 'Runs the generated scripts in a real browser (Chromium)', color: '#F59E0B' },
     { layer: 'CI/CD', tech: 'Azure DevOps / GitHub Actions', desc: 'Automatically runs tests on every code change', color: '#818CF8' },
     { layer: 'Database', tech: 'Azure Cosmos DB', desc: 'Stores all test artifacts, audit logs, and AI healing history', color: '#EF4444' },

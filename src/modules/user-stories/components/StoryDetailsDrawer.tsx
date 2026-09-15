@@ -206,7 +206,7 @@ export const StoryDetailsDrawer: React.FC<StoryDetailsDrawerProps> = ({
               </span>
             </div>
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
-              Automatically generate positive, negative, and edge-case test suites for this requirement using Gemini AI.
+              Automatically generate positive, negative, and edge-case test suites for this requirement using the AI Engine.
             </p>
             <Button
               variant="ai"

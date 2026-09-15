@@ -148,10 +148,10 @@ export const GenerateTestCasesModal: React.FC<GenerateTestCasesModalProps> = ({
               {aiMode === 'real' ? (
                 <>
                   <div style={{ fontWeight: 700, fontSize: 'var(--text-md)', color: 'var(--text-primary)' }}>
-                    Gemini AI is generating test cases for {story.key}...
+                    AI Copilot is generating test cases for {story.key}...
                   </div>
                   <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginTop: '4px' }}>
-                    Calling Google Gemini — analyzing {story.acceptanceCriteria.length} Acceptance Criteria.
+                    Calling Enterprise AI Engine — analyzing {story.acceptanceCriteria.length} Acceptance Criteria.
                   </div>
                 </>
               ) : (
@@ -170,9 +170,9 @@ export const GenerateTestCasesModal: React.FC<GenerateTestCasesModalProps> = ({
           <>
             {/* Top AI Result Header Banner */}
             <AIResultContainer
-              title={alreadyExisted ? `Active Suite: ${generatedCases.length} Test Scenarios for ${story.key}` : `${aiMode === 'real' ? '✦ Gemini AI' : '⚙ Local Engine'}: ${generatedCases.length} Test Scenarios for ${story.key}`}
+              title={alreadyExisted ? `Active Suite: ${generatedCases.length} Test Scenarios for ${story.key}` : `${aiMode === 'real' ? '✦ AI Engine' : '⚙ Local Engine'}: ${generatedCases.length} Test Scenarios for ${story.key}`}
               confidence={aiMode === 'real' ? 98 : 94}
-              badgeText={aiMode === 'real' ? 'Gemini AI • Live' : (alreadyExisted ? 'Test Suite Active' : 'Local Mode')}
+              badgeText={aiMode === 'real' ? 'AI Engine • Live' : (alreadyExisted ? 'Test Suite Active' : 'Local Mode')}
             >
               <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                 {aiError && (
@@ -182,7 +182,7 @@ export const GenerateTestCasesModal: React.FC<GenerateTestCasesModalProps> = ({
                 )}
                 {alreadyExisted
                   ? `These ${generatedCases.length} unique test cases are active and linked to ${story.key}. All ${story.acceptanceCriteria.length} acceptance criteria are fully mapped.`
-                  : `${aiMode === 'real' ? 'Gemini AI' : 'Local engine'} generated ${generatedCases.length} comprehensive test cases matching all ${story.acceptanceCriteria.length} acceptance criteria of ${story.title}.`}
+                  : `${aiMode === 'real' ? 'AI Engine' : 'Local engine'} generated ${generatedCases.length} comprehensive test cases matching all ${story.acceptanceCriteria.length} acceptance criteria of ${story.title}.`}
               </div>
             </AIResultContainer>
 

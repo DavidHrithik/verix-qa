@@ -232,9 +232,9 @@ export const ScriptSynthesizerModal: React.FC<ScriptSynthesizerModalProps> = ({
         ) : (
           <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <AIResultContainer
-              title={`${aiMode === 'real' ? '✦ Gemini AI' : '⚙ Local Engine'}: ${previewScript.name}`}
+              title={`${aiMode === 'real' ? '✦ Live AI Engine' : '⚙ Local Engine'}: ${previewScript.name}`}
               confidence={aiMode === 'real' ? 98 : 93}
-              badgeText={aiMode === 'real' ? 'Gemini AI • Live' : 'Local Mode'}
+              badgeText={aiMode === 'real' ? 'AI Engine • Live' : 'Local Mode'}
             >
               {aiError && (
                 <div style={{ color: '#F59E0B', fontSize: '10px', marginBottom: '6px' }}>

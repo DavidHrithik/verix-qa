@@ -38,6 +38,7 @@ export interface User {
   email: string;
   role: 'QA Lead' | 'QA Engineer' | 'SDET' | 'Product Owner' | 'Developer';
   avatarUrl?: string;
+  avatarInitials?: string;
   assignedProjectIds: string[];
 }
 

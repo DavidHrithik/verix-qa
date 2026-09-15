@@ -1,16 +1,16 @@
 /**
  * AI Service — Unified dual-mode interface.
  *
- * Checks if VITE_GEMINI_API_KEY is set:
- *   - If YES  → calls Gemini 1.5 Flash (Real AI mode)
+ * Checks if Enterprise AI API is configured:
+ *   - If YES  → calls Live AI Engine (Real AI mode)
  *   - If NO   → falls back to the local template engine (Local mode)
  *   - On error → catches, logs, and falls back silently
  *
- * All features in the app call this service, never Gemini or templates directly.
+ * All features in the app call this service, never models or templates directly.
  */
 
 import { UserStory, TestCase, AutomationFramework } from '../../types';
-import { isOpenAIConfigured, callOpenAI, getModelName } from './geminiClient';
+import { isAiConfigured, callAiModel, getModelName } from './llmClient';
 import { buildTestCasePrompt, buildScriptPrompt } from './prompts';
 import { generateMultiVectorTestCases, GeneratedTestCaseItem } from '../../modules/user-stories/services/testGenerationService';
 import { synthesizeAutomationScript, ScriptGenerationParams } from '../../modules/automation/services/scriptGenerationService';
@@ -32,17 +32,17 @@ export interface AiScriptResult {
 
 // ─── Public helpers ───────────────────────────────────────────────────────────
 
-export const isAiEnabled = (): boolean => isOpenAIConfigured();
+export const isAiEnabled = (): boolean => isAiConfigured();
 
-export const getAiMode = (): AiMode => (isOpenAIConfigured() ? 'real' : 'local');
+export const getAiMode = (): AiMode => (isAiConfigured() ? 'real' : 'local');
 
 // ─── Test Case Generation ─────────────────────────────────────────────────────
 
 export const generateTestCases = async (story: UserStory): Promise<AiTestCaseResult> => {
-  if (isOpenAIConfigured()) {
+  if (isAiConfigured()) {
     try {
       const prompt = buildTestCasePrompt(story);
-      const response = await callOpenAI<{ testCases: any[] }>(prompt);
+      const response = await callAiModel<{ testCases: any[] }>(prompt);
 
       const now = new Date().toISOString();
       const cases: GeneratedTestCaseItem[] = response.testCases.map((tc, idx) => ({
@@ -94,10 +94,10 @@ export const generateTestCases = async (story: UserStory): Promise<AiTestCaseRes
 export const generateAutomationScript = async (params: ScriptGenerationParams): Promise<AiScriptResult> => {
   const { story, testCase, framework } = params;
 
-  if (isOpenAIConfigured()) {
+  if (isAiConfigured()) {
     try {
       const prompt = buildScriptPrompt(story, testCase, framework);
-      const response = await callOpenAI<{
+      const response = await callAiModel<{
         gherkinContent: string;
         pageObjectClass: string;
         featureTags: string[];

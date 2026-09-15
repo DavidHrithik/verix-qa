@@ -39,8 +39,8 @@ export const LiveExecutionPanel: React.FC = () => {
           config: {
             endpoint: config.azureEndpoint,
             apiKey: config.azureApiKey,
-            deploymentName: config.azureDeploymentName,
-            apiVersion: config.azureApiVersion
+            deploymentName: config.deploymentName,
+            apiVersion: config.apiVersion
           }
         })
       });

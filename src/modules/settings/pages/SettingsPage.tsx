@@ -143,9 +143,9 @@ export const SettingsPage: React.FC = () => {
       owner: 'AI/ML Team + SDET Team',
       color: '#818CF8',
       icon: <Cpu size={16} />,
-      goal: 'Replace the simulated AI with real Google Gemini calls and hook up a real test runner.',
+      goal: 'Replace the simulated AI with live Enterprise AI calls (Cloud API or Local LLM) and hook up a real test runner.',
       steps: [
-        'Connect the live Google Gemini API — instead of mock AI responses, the app will genuinely read your Jira story and write real test cases in seconds',
+        'Connect your live Enterprise AI API — instead of mock AI responses, the app will genuinely read your Jira story and write real test cases in seconds',
         'Hook up a real Playwright test runner via GitHub Actions / Azure DevOps — tests actually execute against the real product, not a simulation',
         'Build a live DOM snapshot tool — when a UI element breaks, the AI takes a real screenshot, compares before/after, and auto-fixes the selector',
         'AI confidence scores are real — based on actual LLM reasoning, not hardcoded numbers',
@@ -258,18 +258,18 @@ export const SettingsPage: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', maxWidth: '680px' }}>
           
           <Card 
-            title="Azure AI Foundry — Real Healing Engine" 
-            subtitle="Configure connection to your Azure OpenAI instance for live DOM analysis"
+            title="Enterprise AI Gateway — Live Healing Engine" 
+            subtitle="Configure connection to your AI gateway or custom LLM endpoint for live DOM analysis"
           >
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '0.5rem' }}>
               <Input 
-                label="Endpoint URL" 
+                label="Gateway Endpoint URL" 
                 value={config.azureEndpoint}
                 onChange={(e) => setConfig({ ...config, azureEndpoint: e.target.value })}
-                placeholder="https://your-instance.openai.azure.com" 
+                placeholder="https://ai-gateway.your-org.com/v1" 
               />
               <Input 
-                label="API Key" 
+                label="API Key / Auth Token" 
                 type="password"
                 value={config.azureApiKey}
                 onChange={(e) => setConfig({ ...config, azureApiKey: e.target.value })}
@@ -280,9 +280,9 @@ export const SettingsPage: React.FC = () => {
                 value={config.deploymentName}
                 onChange={(e) => setConfig({ ...config, deploymentName: e.target.value })}
                 options={[
-                  { value: 'gpt-6.6-sol', label: 'gpt-6.6-sol (Recommended)' },
-                  { value: 'claude-opus-5', label: 'claude-opus-5' },
-                  { value: 'DeepSeek V4 Pro', label: 'DeepSeek V4 Pro' },
+                  { value: 'enterprise-standard', label: 'Enterprise Standard (Fast & Deterministic)' },
+                  { value: 'deep-reasoning', label: 'Deep Reasoning Model (Complex Scenarios)' },
+                  { value: 'custom-private', label: 'Private Self-Hosted Model (Local / Air-Gapped)' },
                 ]}
               />
               
@@ -292,7 +292,7 @@ export const SettingsPage: React.FC = () => {
                   size="sm"
                   onClick={() => {
                     if (isConfigured) {
-                      showToast('Connection Successful', 'Successfully connected to Azure AI Foundry.', 'success');
+                      showToast('Connection Successful', 'Successfully connected to AI Gateway.', 'success');
                     } else {
                       showToast('Configuration Missing', 'Please fill out all fields.', 'error');
                     }
@@ -319,10 +319,12 @@ export const SettingsPage: React.FC = () => {
               <Select
                 label="Reasoning Engine"
                 options={[
-                  { value: 'gemini-3.7-flash', label: 'Gemini 3.7 Flash (Fastest Reasoning & High Quality)' },
-                  { value: 'gemini-3-pro', label: 'Gemini 3 Pro (Deep Multimodal Verification)' },
+                  { value: 'enterprise-fast', label: 'Enterprise Fast Reasoning (High Quality & Speed)' },
+                  { value: 'deep-reasoning', label: 'Deep Architectural Analysis Engine' },
+                  { value: 'multimodal-vision', label: 'Multimodal Vision & DOM Engine' },
+                  { value: 'custom-private-llm', label: 'Private / On-Premise LLM (Self-Hosted)' },
                 ]}
-                defaultValue="gemini-3.7-flash"
+                defaultValue="enterprise-fast"
               />
               <Input
                 label="AI Test Case Temperature"

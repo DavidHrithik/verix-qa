@@ -90,13 +90,13 @@ Rules: Provide 3 candidates ranked by stability (data-testid first if available)
   });
 
   if (!response.ok) {
-    throw new Error(`Azure AI API Error: ${response.statusText}`);
+    throw new Error(`AI API Error: ${response.statusText}`);
   }
 
   const data = await response.json();
   const content = data.choices[0]?.message?.content;
   if (!content) {
-    throw new Error('Azure AI API returned empty content');
+    throw new Error('AI API returned empty content');
   }
 
   return JSON.parse(content) as AIHealingResult;

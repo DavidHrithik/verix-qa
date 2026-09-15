@@ -53,7 +53,7 @@ export const currentUser: User = {
   id: 'user-1',
   name: 'Alex M.',
   email: 'alex.m@acme.com',
-  role: 'QA Executive',
+  role: 'QA Lead',
   avatarInitials: 'AM',
   assignedProjectIds: ['proj-1', 'proj-2'],
 };

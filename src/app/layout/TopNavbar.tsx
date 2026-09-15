@@ -229,7 +229,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ onOpenMobileMenu }) => {
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
         {/* AI Status Pill */}
         <div
-          title={aiLive ? 'Gemini AI is active — generating real test cases' : 'No API key set — using local template engine'}
+          title={aiLive ? 'Live AI Engine is active — generating real test cases' : 'No API key set — using local template engine'}
           style={{
             display: 'flex',
             alignItems: 'center',
