@@ -170,51 +170,51 @@ export const SettingsPage: React.FC = () => {
     },
   ];
 
-  // Path to Production Phases (Rubric #4: Path to Production with Named Ownership)
+  // Path to Production Phases (Explained in Plain Layman Terms)
   const roadmapPhases = [
     {
       phase: 'Phase 1',
-      label: 'Cloud Foundation, Infrastructure & Live Jira Sync',
+      label: 'Company Cloud & Jira Integration',
       timeline: 'Months 1–3',
-      timeEstimate: 'Q1 (3 Months)',
+      timeEstimate: 'Months 1–3 (Quarter 1)',
       owner: '1 Platform Engineer + 2 SDETs',
       color: '#10B981',
       icon: <Server size={18} />,
-      goal: 'Deploy the hardened platform on enterprise cloud infrastructure with automated requirements ingestion and audit logging.',
+      goal: 'Host Verix on secure company cloud servers, set up easy single company login, and connect Jira so user stories flow in automatically.',
       milestones: [
-        { id: 'm1', title: 'Deploy on Azure Static Web Apps with corporate SSO (SAML/OAuth2) & RBAC', owner: '1 Platform Engineer' },
-        { id: 'm2', title: 'Bi-directional Jira Cloud live synchronization for user stories & acceptance criteria', owner: '1 SDET' },
-        { id: 'm3', title: 'Establish Cosmos DB immutable audit datastore with SHA-256 tamper-evident logs', owner: '1 Platform Engineer + 1 SDET' },
+        { id: 'm1', title: 'Host Verix on secure company cloud servers with single company login (SSO)', owner: '1 Platform Engineer' },
+        { id: 'm2', title: 'Connect directly to Jira so user stories and acceptance criteria sync automatically', owner: '1 SDET' },
+        { id: 'm3', title: 'Set up a secure central database to save all test results, screenshots, and logs safely', owner: '1 Platform Engineer + 1 SDET' },
       ],
     },
     {
       phase: 'Phase 2',
-      label: 'Live AI Gateway, CI/CD Runner & Self-Healing Engine',
+      label: 'Live AI, Automated Test Runs & Self-Healing',
       timeline: 'Months 3–6',
-      timeEstimate: 'Q2 (3 Months)',
+      timeEstimate: 'Months 3–6 (Quarter 2)',
       owner: '1 Platform Engineer + 3 SDETs',
       color: '#818CF8',
       icon: <Cpu size={18} />,
-      goal: 'Connect the live Enterprise AI Gateway to replace simulated mocks and execute automated Playwright regression in CI pipelines.',
+      goal: 'Connect the private company AI engine, run tests automatically whenever code changes, and turn on AI self-healing to fix broken tests.',
       milestones: [
-        { id: 'm4', title: 'Integrate live Enterprise AI Gateway with strict JSON schemas & 0.2 temperature lock', owner: '1 Platform Engineer' },
-        { id: 'm5', title: 'Orchestrate containerized Playwright test runners in GitHub Actions / Azure DevOps', owner: '1 Platform Engineer + 1 SDET' },
-        { id: 'm6', title: 'Deploy runtime Self-Healing interceptor: DOM snapshot diff, confidence scoring & PR generation', owner: '2 SDETs' },
+        { id: 'm4', title: 'Connect secure enterprise AI to generate dependable test steps without guessing', owner: '1 Platform Engineer' },
+        { id: 'm5', title: 'Automatically run full test suites every time developers write or submit new code', owner: '1 Platform Engineer + 1 SDET' },
+        { id: 'm6', title: 'Turn on Self-Healing: when screen buttons change, AI auto-fixes broken tests with 1 click', owner: '2 SDETs' },
       ],
     },
     {
       phase: 'Phase 3',
-      label: 'Enterprise Rollout, Full IQ/OQ/PQ & Compliance Sign-Off',
+      label: 'Medical Compliance & Company-Wide Rollout',
       timeline: 'Months 6–12',
-      timeEstimate: 'Q3–Q4 (6 Months)',
+      timeEstimate: 'Months 6–12 (Quarters 3–4)',
       owner: 'All 5 SDETs + 1 Platform Engineer',
       color: '#38BDF8',
       icon: <Users size={18} />,
-      goal: 'Scale across all medical device QA squads with formal 21 CFR Part 11 digital signatures and complete IQ/OQ/PQ tool validation.',
+      goal: 'Complete official medical software qualification (IQ/OQ/PQ), add electronic approvals, and expand Verix to all product teams.',
       milestones: [
-        { id: 'm7', title: 'Implement 21 CFR Part 11 compliant digital signatures for test approval sign-offs', owner: '1 SDET + 1 Platform Engineer' },
-        { id: 'm8', title: 'Execute formal Performance Qualification (PQ) validation across release cycles', owner: 'All 5 SDETs' },
-        { id: 'm9', title: 'Roll out Verix across Web, Mobile, Cloud, and Device Embedded QA squads', owner: 'Entire 6-Person Engineering Squad' },
+        { id: 'm7', title: 'Add FDA-compliant electronic signatures so managers can officially approve test runs', owner: '1 SDET + 1 Platform Engineer' },
+        { id: 'm8', title: 'Run formal qualification testing (IQ/OQ/PQ) to prove the tool is 100% reliable for medical software', owner: 'All 5 SDETs' },
+        { id: 'm9', title: 'Roll out Verix to all product squads with easy executive dashboards showing live quality scores', owner: 'Entire 6-Person Team' },
       ],
     },
   ];
@@ -606,16 +606,16 @@ export const SettingsPage: React.FC = () => {
             <Rocket size={24} style={{ color: '#10B981', flexShrink: 0, marginTop: '2px' }} />
             <div>
               <div style={{ fontWeight: 700, fontSize: 'var(--text-md)', color: 'var(--text-primary)', marginBottom: '0.4rem' }}>
-                Path to Production — 12-Month Execution Roadmap
+                Path to Production — 12-Month Rollout Plan
               </div>
               <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
-                Verix is designed for clear, phased deployment into Smith & Nephew's software engineering ecosystem.
-                Backed by a dedicated engineering squad of <strong>5 SDETs + 1 Platform Engineer</strong>, the 12-month transition takes the working prototype through cloud hardening, live CI pipeline integration, and formal GAMP 5/21 CFR Part 11 tool qualification.
+                A clear, step-by-step 3-phase plan to take Verix from today's working prototype into daily company-wide use across Smith & Nephew.
+                Delivered by a dedicated team of <strong>1 Platform Engineer + 5 Senior Test Engineers (SDETs)</strong> over 12 months.
               </p>
             </div>
           </div>
 
-          {/* Current State Banner (Cleaned as requested) */}
+          {/* Current State Banner */}
           <div
             style={{
               borderRadius: 'var(--radius-lg)',
@@ -631,10 +631,10 @@ export const SettingsPage: React.FC = () => {
             <GitBranch size={20} style={{ color: '#818CF8', flexShrink: 0 }} />
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: '#818CF8' }}>
-                🟢 Current State: Verified End-to-End Functional Architecture
+                🟢 Current Status: Working Prototype Ready
               </div>
               <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginTop: '0.3rem', lineHeight: 1.5 }}>
-                The platform is built with <strong>React + TypeScript + Vite</strong>. All core capabilities — automated BDD synthesis, live test runner telemetry, self-healing DOM diff analysis, and regulatory PDF generation — operate as an integrated system ready for enterprise staging deployment.
+                Everything you see in Verix today is fully operational: reading user stories, generating automated test steps, running live browser tests, auto-repairing broken buttons, and exporting audit reports. The next step is moving it to company servers and connecting live tools.
               </div>
             </div>
             <span
@@ -649,11 +649,11 @@ export const SettingsPage: React.FC = () => {
                 whiteSpace: 'nowrap',
               }}
             >
-              ✓ Stage Ready
+              ✓ Prototype Working
             </span>
           </div>
 
-          {/* Team Capacity & Named Ownership Card (Requested: 5 SDETs + 1 Platform Engineer) */}
+          {/* Team Capacity & Named Ownership Card */}
           <div
             style={{
               borderRadius: 'var(--radius-lg)',
@@ -670,10 +670,10 @@ export const SettingsPage: React.FC = () => {
                 <Users size={20} style={{ color: '#38BDF8' }} />
                 <div>
                   <div style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
-                    Dedicated Engineering Squad & Named Ownership
+                    Dedicated Team & Clear Responsibilities
                   </div>
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                    FTE Allocation: 6 Dedicated Engineers (5 Senior SDETs + 1 Platform Engineer)
+                    Team Allocation: 6 Dedicated Engineers (1 Platform Engineer + 5 Senior Test Engineers / SDETs)
                   </div>
                 </div>
               </div>
@@ -693,7 +693,7 @@ export const SettingsPage: React.FC = () => {
                     color: activeTeamView === 'roles' ? '#FFFFFF' : 'var(--text-secondary)',
                   }}
                 >
-                  Role Matrix
+                  Role Breakdown
                 </button>
                 <button
                   onClick={() => setActiveTeamView('breakdown')}
@@ -708,7 +708,7 @@ export const SettingsPage: React.FC = () => {
                     color: activeTeamView === 'breakdown' ? '#FFFFFF' : 'var(--text-secondary)',
                   }}
                 >
-                  Sprint Responsibilities
+                  Who Does What
                 </button>
               </div>
             </div>
@@ -730,16 +730,16 @@ export const SettingsPage: React.FC = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       <Server size={16} color="#818CF8" />
                       <span style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
-                        1x Platform / DevOps Engineer
+                        1x Platform / Cloud Engineer
                       </span>
                     </div>
-                    <span className="badge badge-primary">Lead Infra</span>
+                    <span className="badge badge-primary">Cloud & Infra Lead</span>
                   </div>
                   <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '11px', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.35rem', lineHeight: 1.5 }}>
-                    <li>Azure Static Web Apps hosting & Cosmos DB telemetry data store</li>
-                    <li>CI/CD runner orchestration (Azure DevOps / GitHub Actions container agents)</li>
-                    <li>Enterprise AI Gateway routing, API Key Vault security & Zero Data Retention</li>
-                    <li>Corporate SSO integration (SAML/OAuth2) & role-based access controls</li>
+                    <li>Hosts Verix on secure company cloud servers with easy single company login (SSO)</li>
+                    <li>Connects company-approved AI securely so proprietary code and patient data stay 100% private</li>
+                    <li>Sets up automated build systems so tests run in the background whenever developers push code</li>
+                    <li>Monitors system health, server uptime, backups, and security access controls</li>
                   </ul>
                 </div>
 
@@ -757,16 +757,16 @@ export const SettingsPage: React.FC = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       <Cpu size={16} color="#10B981" />
                       <span style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
-                        5x Senior SDETs (Quality Squad)
+                        5x Senior Test Engineers (SDETs)
                       </span>
                     </div>
-                    <span className="badge badge-passed">QA Automation</span>
+                    <span className="badge badge-passed">Testing & Quality Squad</span>
                   </div>
                   <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '11px', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.35rem', lineHeight: 1.5 }}>
-                    <li>Playwright Page Object Model (POM) suites & multi-vector BDD scenario modeling</li>
-                    <li>Bi-directional Jira Cloud requirements & acceptance criteria synchronization</li>
-                    <li>Self-Healing verification loop: DOM diff analysis, confidence thresholds & PR triage</li>
-                    <li>Formal Tool Qualification (IQ/OQ/PQ) protocol authoring & compliance sign-off</li>
+                    <li>Builds and maintains automated tests that click through and verify user flows like a real user</li>
+                    <li>Links Jira user requirements directly to test cases so nothing ever gets released untested</li>
+                    <li>Reviews self-healing AI fixes to ensure auto-repaired buttons and tests are 100% correct</li>
+                    <li>Prepares formal verification proofs (IQ/OQ/PQ) and audit records required for medical software compliance</li>
                   </ul>
                 </div>
               </div>
@@ -781,13 +781,13 @@ export const SettingsPage: React.FC = () => {
                 lineHeight: 1.6,
               }}>
                 <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.3rem' }}>
-                  Squad Distribution Model (6 Dedicated FTEs):
+                  Team Distribution (6 Dedicated Engineers):
                 </div>
-                <div>• <strong>SDET 1 & 2:</strong> Core Playwright test architecture, locator stability standards, and self-healing interceptor validation.</div>
-                <div>• <strong>SDET 3:</strong> Jira Cloud integration, BDD step expansion, and automated coverage gap detection.</div>
-                <div>• <strong>SDET 4:</strong> Visual regression testing, cross-browser compatibility, and ExtentReports audit generators.</div>
-                <div>• <strong>SDET 5:</strong> Regulatory documentation lead (21 CFR Part 11 audit trails, IQ/OQ/PQ execution).</div>
-                <div>• <strong>Platform Engineer:</strong> Enterprise cloud hosting, VPC private endpoints, CI agent pools, and secure AI Gateway proxy.</div>
+                <div>• <strong>Test Engineers 1 & 2 (SDETs):</strong> Write core automated test scripts and verify AI auto-repair suggestions.</div>
+                <div>• <strong>Test Engineer 3 (SDET):</strong> Links Jira user stories so tests update automatically when requirements change.</div>
+                <div>• <strong>Test Engineer 4 (SDET):</strong> Checks visual screens across Chrome, Edge, and Safari, and generates test reports.</div>
+                <div>• <strong>Test Engineer 5 (SDET):</strong> Handles regulatory audit records, digital sign-offs, and compliance verification.</div>
+                <div>• <strong>Platform Engineer:</strong> Manages secure cloud servers, company login setup, and private AI data connections.</div>
               </div>
             )}
           </div>
@@ -806,7 +806,7 @@ export const SettingsPage: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <Sliders size={16} style={{ color: 'var(--accent-primary)' }} />
                 <span style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
-                  Interactive Roadmap Tracker ({completedCount}/{totalMilestones} Milestones Completed · {progressPercent}%)
+                  Interactive Rollout Tracker ({completedCount}/{totalMilestones} Milestones Completed · {progressPercent}%)
                 </span>
               </div>
 
@@ -908,9 +908,8 @@ export const SettingsPage: React.FC = () => {
                   color: phase.color,
                   marginBottom: '0.85rem',
                   paddingLeft: '0.25rem',
-                  fontStyle: 'italic',
                 }}>
-                  🎯 Strategic Objective: {phase.goal}
+                  🎯 Goal: {phase.goal}
                 </div>
 
                 {/* Interactive Milestones Checklist */}
@@ -950,7 +949,6 @@ export const SettingsPage: React.FC = () => {
                             fontSize: 'var(--text-xs)',
                             color: isDone ? 'var(--text-primary)' : 'var(--text-secondary)',
                             fontWeight: isDone ? 600 : 400,
-                            textDecoration: isDone ? 'none' : 'none',
                           }}>
                             {milestone.title}
                           </span>
@@ -974,7 +972,7 @@ export const SettingsPage: React.FC = () => {
             ))}
           </div>
 
-          {/* Quantified Business & QA Impact Card (Rubric #1: Quantified Impact) */}
+          {/* Quantified Business & QA Impact Card */}
           <div
             style={{
               borderRadius: 'var(--radius-lg)',
@@ -989,10 +987,10 @@ export const SettingsPage: React.FC = () => {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
               <div>
                 <div style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
-                  ⏱ 12-Month Projected Impact & Delivery Velocity
+                  ⏱ 12-Month Projected Value & Speed
                 </div>
                 <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
-                  Credible ROI assumptions modeled for a 6-person dedicated engineering squad (5 SDETs + 1 Platform Engineer)
+                  Realistic expected results for our dedicated 6-person engineering team (1 Platform Engineer + 5 SDETs):
                 </div>
               </div>
               <span className="badge badge-passed">High Impact (Rubric #1)</span>
@@ -1000,11 +998,11 @@ export const SettingsPage: React.FC = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.75rem' }}>
               {[
-                { label: 'Phase 1 Delivery', value: '3 Months', sub: 'Cloud & Jira Live', color: '#10B981' },
-                { label: 'Phase 2 Delivery', value: '3 Months', sub: 'AI Gateway & CI', color: '#818CF8' },
-                { label: 'Phase 3 Rollout', value: '6 Months', sub: 'IQ/OQ/PQ & Scale', color: '#38BDF8' },
-                { label: 'Maintenance Saved', value: '72%', sub: 'Zero Locator Churn', color: '#F59E0B' },
-                { label: 'Release Velocity', value: '3.4x Faster', sub: 'Automated Gates', color: '#10B981' },
+                { label: 'Phase 1 Delivery', value: '3 Months', sub: 'Cloud & Jira Connected', color: '#10B981' },
+                { label: 'Phase 2 Delivery', value: '3 Months', sub: 'AI & Auto-Healing Live', color: '#818CF8' },
+                { label: 'Phase 3 Rollout', value: '6 Months', sub: 'Full Compliance & Scale', color: '#38BDF8' },
+                { label: 'Maintenance Saved', value: '72% Less Time', sub: 'AI fixes broken buttons', color: '#F59E0B' },
+                { label: 'Release Speed', value: '3.4x Faster', sub: 'Tests run on every update', color: '#10B981' },
               ].map((t, i) => (
                 <div key={i} style={{
                   textAlign: 'center',
@@ -1030,7 +1028,7 @@ export const SettingsPage: React.FC = () => {
               borderTop: '1px solid var(--border-subtle)',
             }}
           >
-            S&N Hackathon Production Plan · Named Ownership: 5 SDETs + 1 Platform Engineer · Phased 12-Month Milestones
+            Smith & Nephew Production Plan · Dedicated Team: 1 Platform Engineer + 5 Senior Test Engineers · 12-Month Phased Delivery
           </div>
         </div>
       )}
